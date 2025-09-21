@@ -121,7 +121,12 @@ def get_kpi_data():
         total_dropout = db.session.query(StudentPrediction).filter_by(predicted_dropout_status='Dropout').count()
         total_enrolled = db.session.query(StudentPrediction).filter_by(predicted_dropout_status='Enrolled').count()
         dropout_rate = (total_dropout / total_students) if total_students > 0 else 0
-        return jsonify({'total_students': total_students, 'total_dropout': total_dropout, 'dropout_rate': dropout_rate,'total_enrolled': total_enrolled})
+        return jsonify({
+            'total_students': total_students, 
+            'total_dropout': total_dropout, 
+            'total_enrolled': total_enrolled,
+            'dropout_rate': dropout_rate
+        })
     except Exception as e:
         print(f"🔴 KPI Error: {e}")
         return jsonify({'error': 'Could not fetch KPI data.'}), 500
@@ -154,7 +159,6 @@ def get_gemini_interventions(student_data, prediction_result):
         return "Could not retrieve AI interventions."
 
 if __name__ == '__main__':
-    # THIS IS THE FIX: Create tables if they don't exist before running the app.
     # This block only runs on your local machine, not on Render.
     with app.app_context():
         db.create_all()
