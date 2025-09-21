@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dropout Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .view-container { display: none; }
+        .view-container.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        .sidebar-link.active { background-color: #4f46e5; color: white; }
+        .submenu { display: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="flex h-screen bg-gray-100">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg flex flex-col">
+            <div class="p-6 text-2xl font-bold text-indigo-600 border-b">
+                Student Dropout Analytics
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" class="sidebar-link active flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('dashboard', this)">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Dashboard
+                </a>
+                <a href="#" class="sidebar-link flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('prediction', this)">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    New Prediction
+                </a>
+                <!-- Collapsible Reports Menu -->
+                <div>
+                    <button class="sidebar-link w-full flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="toggleSubmenu()">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Detailed Reports
+                        <svg id="arrow" class="w-4 h-4 ml-auto transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="submenu" class="submenu pl-8 pt-2 space-y-2">
+                        <a href="#" class="sidebar-link block py-2 px-3 rounded-lg hover:bg-gray-200" onclick="showView('school-report', this)">School-wise</a>
+                        <a href="#" class="sidebar-link block py-2 px-3 rounded-lg hover:bg-gray-200" onclick="showView('area-report', this)">Area-wise</a>
+                        <a href="#" class="sidebar-link block py-2 px-3 rounded-lg hover:bg-gray-200" onclick="showView('gender-report', this)">Gender-wise</a>
+                        <a href="#" class="sidebar-link block py-2 px-3 rounded-lg hover:bg-gray-200" onclick="showView('caste-report', this)">Caste-wise</a>
+                        <a href="#" class="sidebar-link block py-2 px-3 rounded-lg hover:bg-gray-200" onclick="showView('age-report', this)">Age/Standard-wise</a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="p-6 bg-white border-b flex justify-between items-center">
+                <h1 id="page-title" class="text-3xl font-bold text-gray-800">Dashboard</h1>
+            </header>
+            
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Dashboard View -->
+                <div id="dashboard-view" class="view-container active">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-gray-500">Total Students</div>
+                                <div id="total-students-kpi" class="text-3xl font-bold text-gray-900">...</div>
+                            </div>
+                            <div class="bg-indigo-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-gray-500">Dropout Rate</div>
+                                <div id="dropout-rate-kpi" class="text-3xl font-bold text-red-600">...</div>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-gray-500">DROPOUT_STUDENTS</div>
+                                <div id="total_dropout-kpi" class="text-3xl font-bold text-yellow-600">...</div>
+                            </div>
+                           <div class="bg-yellow-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
+                                <div class="text-sm text-gray-500">Enrolled Students</div>
+                                <div id="enrolled-kpi" class="text-3xl font-bold text-green-600">...</div>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 bg-white p-6 rounded-xl shadow-md h-[70vh]">
+                         <h2 class="text-2xl font-bold mb-4 text-center">Dropout Overview Dashboard</h2>
+                         <iframe title="Main Dashboard" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiN2Y0NzIxMDktM2MyMC00OGE1LTk0N2YtMWFjNDE2YTk0Y2E1IiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9" allowfullscreen="true"></iframe>
+                    </div>
+                </div>
+
+                <!-- Prediction View -->
+                <div id="prediction-view" class="view-container">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-white p-8 rounded-2xl shadow-lg">
+                            <h2 class="text-2xl font-bold mb-6 text-gray-800">Enter Student Details</h2>
+                            <form id="prediction-form" class="space-y-6">
+                                
+                                <!-- Section 1: Demographics -->
+                                <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Student Demographics</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="school-name" class="block text-sm font-medium text-gray-700">School Name</label>
+                                            <select id="school-name" name="school_name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                                {% for school in school_names %}
+                                                <option value="{{ school }}">{{ school }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="district" class="block text-sm font-medium text-gray-700">District</label>
+                                            <select id="district" name="district" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                                {% for district in districts %}
+                                                <option value="{{ district }}">{{ district }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div><label for="area-type" class="block text-sm font-medium text-gray-700">Area Type</label><select id="area-type" name="area_type" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>Urban</option><option>Semi-Urban</option><option>Rural</option></select></div>
+                                        <div><label for="gender" class="block text-sm font-medium text-gray-700">Gender</label><select id="gender" name="gender" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>Male</option><option>Female</option></select></div>
+                                        <div><label for="caste" class="block text-sm font-medium text-gray-700">Caste</label><select id="caste" name="caste" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>General</option><option>OBC</option><option>SC</option><option>ST</option></select></div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="age" class="block text-sm font-medium text-gray-700">Age</label><input type="number" id="age" name="age" min="5" max="20" placeholder="e.g., 15" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                        <div><label for="year" class="block text-sm font-medium text-gray-700">Academic Year</label><input type="number" id="year" name="year" min="2018" max="2030" placeholder="e.g., 2025" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 2: Academic & School -->
+                                <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Academic & School Factors</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="standard" class="block text-sm font-medium text-gray-700">Standard (1-10)</label><input type="number" id="standard" name="standard" min="1" max="10" placeholder="e.g., 8" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                        <div><label for="prev-performance" class="block text-sm font-medium text-gray-700">Previous Performance (%)</label><input type="number" id="prev-performance" name="prev_academic_performance" step="0.01" min="0" max="100" placeholder="e.g., 65.5" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="attendance" class="block text-sm font-medium text-gray-700">Attendance (%)</label><input type="number" id="attendance" name="attendance_record" step="0.01" min="0" max="100" placeholder="e.g., 80" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                        <div><label for="teacher-ratio" class="block text-sm font-medium text-gray-700">Teacher-Student Ratio</label><input type="number" id="teacher-ratio" name="teacher_student_ratio" step="0.1" placeholder="e.g., 25.5" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Section 3: Socio-economic -->
+                                <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                                    <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Socio-economic Factors</h3>
+                                     <div><label for="parental-education" class="block text-sm font-medium text-gray-700">Parental Education</label><select id="parental-education" name="parental_education" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>Primary</option><option>Secondary</option><option>Higher Secondary</option><option>Post-Graduate</option><option>Other</option></select></div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div><label for="family-income" class="block text-sm font-medium text-gray-700">Annual Family Income</label><input type="number" id="family-income" name="family_income" step="1000" placeholder="e.g., 80000" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                        <div><label for="distance" class="block text-sm font-medium text-gray-700">Distance from School (km)</label><input type="number" id="distance" name="distance_km" step="0.01" placeholder="e.g., 2.5" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
+                                    </div>
+                                    <div>
+                                        <label for="dropout-reason" class="block text-sm font-medium text-gray-700">Anticipated Dropout Reason</label>
+                                        <select id="dropout-reason" name="dropout_reason" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                            {% for reason in dropout_reasons %}
+                                            <option value="{{ reason }}">{{ reason }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="predict-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:bg-indigo-300">
+                                    Predict Dropout Risk
+                                </button>
+                            </form>
+                        </div>
+                        <div id="result-container" class="bg-white p-8 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center">
+                             <h2 class="text-2xl font-bold mb-4 text-gray-800">Prediction Result</h2>
+                             <div id="result-content" class="w-full">
+                                 <!-- This container will be dynamically filled -->
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detailed Report Views -->
+                <div id="school-report-view" class="view-container">
+                    <div class="bg-white p-6 rounded-xl shadow-md h-[70vh]"><iframe title="School-wise Analysis" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiMTQwYmIzZmUtMjg0NS00NjgzLWFhZGMtZTExMWYyMTVkMDdjIiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9&pageName=9f1051c9591637dcd3e0" allowfullscreen="true"></iframe></div>
+                    <div class="mt-8"><h2 class="text-2xl font-bold text-gray-800 mb-4">Interventions for Schools</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Underperforming School Program</h3><p class="text-gray-600 mt-2">Identify the top 5 schools with the highest dropout rates. Allocate additional resources, teacher training, and mentorship programs specifically for them.</p></div><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Best Practice Sharing</h3><p class="text-gray-600 mt-2">Analyze schools with the lowest dropout rates to identify successful strategies. Organize workshops for other school administrators to share these findings.</p></div></div></div>
+                </div>
+                <div id="area-report-view" class="view-container">
+                    <div class="bg-white p-6 rounded-xl shadow-md h-[70vh]"><iframe title="Area-wise Analysis" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiYTRiN2FkZjEtYjk5Mi00M2E1LTgwMzUtYmZmNTU4MjQ4MTkyIiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9" allowfullscreen="true"></iframe></div>
+                     <div class="mt-8"><h2 class="text-2xl font-bold text-gray-800 mb-4">Interventions by Area</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Rural Infrastructure Investment</h3><p class="text-gray-600 mt-2">If Rural areas show high dropout rates, analyze distance-to-school data. Propose new transportation routes or after-school programs to reduce travel burdens.</p></div><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Urban Community Outreach</h3><p class="text-gray-600 mt-2">In Urban areas, dropout reasons might be different. Partner with local community centers to create safe study spaces and mentorship opportunities outside of school.</p></div></div></div>
+                </div>
+                <div id="gender-report-view" class="view-container">
+                    <div class="bg-white p-6 rounded-xl shadow-md h-[70vh]"><iframe title="Gender-wise Analysis" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiM2M0ZjMyMjQtNzE5OS00YjhmLTk4ZDktMGI5OTIwNzY4NzIxIiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9" allowfullscreen="true"></iframe></div>
+                     <div class="mt-8"><h2 class="text-2xl font-bold text-gray-800 mb-4">Interventions by Gender</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Female Mentorship Programs</h3><p class="text-gray-600 mt-2">If dropout rates are higher for girls, launch mentorship programs connecting students with successful women in various professions to provide role models and support.</p></div><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Skill-Based Workshops for Boys</h3><p class="text-gray-600 mt-2">If boys show higher dropout rates due to 'Lack of Interest', introduce vocational or tech-focused workshops to provide alternative, engaging learning paths.</p></div></div></div>
+                </div>
+                <div id="caste-report-view" class="view-container">
+                    <div class="bg-white p-6 rounded-xl shadow-md h-[70vh]"><iframe title="Caste-wise Analysis" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiN2M4ODM4ZWItY2JiMS00MzRhLWE2MGUtOTA2ZDZlYTU5YmNhIiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9" allowfullscreen="true"></iframe></div>
+                    <div class="mt-8"><h2 class="text-2xl font-bold text-gray-800 mb-4">Interventions by Caste</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Targeted Scholarship Programs</h3><p class="text-gray-600 mt-2">Analyze if specific caste groups (e.g., SC/ST) have higher dropout rates linked to low income. Propose dedicated scholarship and financial aid programs to alleviate this burden.</p></div></div></div>
+                </div>
+                 <div id="age-report-view" class="view-container">
+                    <div class="bg-white p-6 rounded-xl shadow-md h-[70vh]"><iframe title="Age/Standard-wise Analysis" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiZjQxMmNhZjUtZGUwZi00MTg5LWFlYTItMDI5ODk4YTQ5OTQ3IiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9" allowfullscreen="true"></iframe></div>
+                    <div class="mt-8"><h2 class="text-2xl font-bold text-gray-800 mb-4">Interventions by Age/Standard</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Transition Year Support</h3><p class="text-gray-600 mt-2">Identify if dropout rates spike at key transition years (e.g., moving from primary to secondary). Implement special counseling and academic support programs for these specific standards.</p></div></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const resultContainer = document.getElementById('result-content');
+        const form = document.getElementById('prediction-form');
+        const predictButton = document.getElementById('predict-button');
+
+        const initialResultHTML = `
+            <div class="text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Results will be displayed here.
+            </div>`;
+        
+        resultContainer.innerHTML = initialResultHTML;
+                async function updateKpiCards() {
+            try {
+                const response = await fetch('/api/kpi_data');
+                if (!response.ok) throw new Error('Failed to fetch KPI data');
+                const data = await response.json();
+
+                document.getElementById('total-students-kpi').innerText = data.total_students.toLocaleString();
+                document.getElementById('dropout-rate-kpi').innerText = (data.dropout_rate * 100).toFixed(1) + '%';
+                document.getElementById('total_dropout-kpi').innerText = data.total_dropout.toLocaleString();
+                document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
+            } catch (error) {
+                console.error("KPI Update Error:", error);
+                document.getElementById('total-students-kpi').innerText = 'Error';
+                document.getElementById('dropout-rate-kpi').innerText = 'Error';
+                document.getElementById('total_dropout-kpi').innerText = 'Error';
+                document.getElementById('enrolled-kpi').innerText = 'Error';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateKpiCards();
+            resultContainer.innerHTML = `
+                <div class="text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Results will be displayed here.
+                </div>`;
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            predictButton.disabled = true;
+            predictButton.innerText = 'Analyzing...';
+            
+            resultContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center">
+                    <div class="loader"></div>
+                    <p class="text-gray-500 mt-4">Running prediction and generating AI insights...</p>
+                </div>`;
+
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Prediction failed.');
+                }
+                const result = await response.json();
+                
+                displayResults(result);
+                updateKpiCards();
+
+            } catch (error) {
+                console.error('Error:', error);
+                displayError(error.message);
+            } finally {
+                predictButton.disabled = false;
+                predictButton.innerText = 'Predict Dropout Risk';
+            }
+        });
+
+        function displayResults(result) {
+            console.log("Data received from backend:", result);
+
+            const riskLevel = result.risk_level;
+            const riskScore = (typeof result.risk_score === 'number') ? result.risk_score : 0;
+            const prediction = result.prediction;
+
+            let color = 'indigo';
+            if (riskLevel === 'High') color = 'red';
+            if (riskLevel === 'Medium') color = 'yellow';
+            if (riskLevel === 'Low') color = 'green';
+
+            let interventionsHTML = '';
+            if (result.interventions) {
+                interventionsHTML = `
+                    <div class="mt-8 text-left animate-fadeIn">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">✨ AI-Powered Interventions</h3>
+                        <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg whitespace-pre-wrap font-mono text-sm text-gray-700">
+${result.interventions}
+                        </div>
+                    </div>`;
+            }
+            
+            const displayPrediction = prediction || "N/A";
+            const displayRiskLevel = riskLevel || "N/A";
+
+            resultContainer.innerHTML = `
+                <div class="w-full animate-fadeIn">
+                    <p class="text-lg">Predicted Status:</p>
+                    <p class="text-4xl font-extrabold mb-4 text-${color}-600">${displayPrediction}</p>
+                    <p class="text-lg mt-6">Risk Level:</p>
+                    <p class="text-3xl font-bold mb-4 text-${color}-600">${displayRiskLevel}</p>
+                    <p class="text-lg mt-6">Risk Score:</p>
+                    <div class="w-full bg-gray-200 rounded-full h-6 mt-2">
+                        <div class="bg-${color}-600 h-6 rounded-full text-white flex items-center justify-center" style="width: ${riskScore}%;">
+                            <span>${riskScore.toFixed(0)}%</span>
+                        </div>
+                    </div>
+                    ${interventionsHTML}
+                </div>`;
+        }
+
+        function displayError(message) {
+             resultContainer.innerHTML = `
+                <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center animate-fadeIn">
+                    <h3 class="font-bold">An Error Occurred</h3>
+                    <p>${message}</p>
+                </div>`;
+        }
+        
+        // --- Navigation Logic ---
+        const pageTitles = {
+            dashboard: 'Dashboard', prediction: 'New Prediction', 'school-report': 'School-wise Analysis',
+            'area-report': 'Area-wise Analysis', 'gender-report': 'Gender-wise Analysis',
+            'caste-report': 'Caste-wise Analysis', 'age-report': 'Age & Standard-wise Analysis',
+        };
+
+        function showView(viewId, element) {
+            document.getElementById('page-title').innerText = pageTitles[viewId];
+            document.querySelectorAll('.view-container').forEach(c => c.classList.remove('active'));
+            document.getElementById(`${viewId}-view`).classList.add('active');
+            
+            document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+            
+            if(element.parentElement.classList.contains('submenu')){
+                element.parentElement.previousElementSibling.classList.add('active');
+            }
+            element.classList.add('active');
+        }
+
+        function toggleSubmenu() {
+            const submenu = document.getElementById('submenu');
+            const arrow = document.getElementById('arrow');
+            if (submenu.style.display === 'block') {
+                submenu.style.display = 'none';
+                arrow.classList.remove('rotate-180');
+            } else {
+                submenu.style.display = 'block';
+                arrow.classList.add('rotate-180');
+            }
+        }
+    </script>
+
+</body>
+</html>
+

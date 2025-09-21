@@ -1,0 +1,14 @@
+ Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# IDE / Editor specific
+.vscode/
+
+# Secrets - DO NOT UPLOAD
+.env
