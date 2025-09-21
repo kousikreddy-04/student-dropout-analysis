@@ -7,3 +7,4 @@ lightgbm
 joblib
 psycopg2-binary
 python-dotenv
+requests
