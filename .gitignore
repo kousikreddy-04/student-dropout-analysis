@@ -12,3 +12,6 @@ env/
 
 # Secrets - DO NOT UPLOAD
 .env
+
+# VS Code settings
+.vscode/
