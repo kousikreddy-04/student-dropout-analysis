@@ -14,7 +14,7 @@ app = Flask(__name__, template_folder='templates')
 CORS(app)
 
 # --- Configuration ---
-DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:kousik@localhost:5432/student')
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin@localhost:5432/student_dropot_db')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

@@ -1,6 +1,10 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import sys
+from dotenv import load_dotenv
+load_dotenv()
+import os
+
 
 def load_historical_data():
     """
@@ -10,7 +14,7 @@ def load_historical_data():
     """
     # --- Configuration ---
     # IMPORTANT: UPDATE THIS LINE with the same PostgreSQL credentials used in your app.py
-    DATABASE_URI = 'postgresql://postgres:kousik@localhost:5432/student'
+    DATABASE_URI = os.environ.get('DATABASE_URL')
     CSV_FILE_PATH = 'karnataka_dropout_enhanced_with_family.csv'
     TABLE_NAME = 'student_predictions'
 
