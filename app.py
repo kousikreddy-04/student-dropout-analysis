@@ -16,7 +16,7 @@ app = Flask(__name__, template_folder='templates')
 CORS(app)
 
 # --- Configuration ---
-# Securely load the database URL from Render's environment variables.
+# THIS IS THE FIX: Securely load the database URL from Render's environment variables.
 # It will fall back to a default localhost URL if the variable is not set (for local use).
 DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:admin@localhost:5432/student_dropout_db')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
@@ -65,7 +65,7 @@ class StudentPrediction(db.Model):
     predicted_risk_score = db.Column(db.Float)
     created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
 
-# --- Routes (Unchanged) ---
+# --- Routes ---
 @app.route('/')
 def home():
     try:
@@ -159,7 +159,8 @@ def get_gemini_interventions(student_data, prediction_result):
         return "Could not retrieve AI interventions."
 
 if __name__ == '__main__':
-    # This block only runs on your local machine, not on Render.
+    # This block is for local development only and will not be run on Render.
+    # The 'db.create_all()' line can be used locally to set up your database tables.
     with app.app_context():
         db.create_all()
         
