@@ -51,7 +51,10 @@
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     New Prediction
                 </a>
-                <!-- Collapsible Reports Menu -->
+                <a href="#" class="sidebar-link flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('batch', this)">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Batch Prediction
+                </a>
                 <div>
                     <button class="sidebar-link w-full flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="toggleSubmenu()">
                         <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -90,6 +93,15 @@
                         </div>
                          <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
                             <div>
+                                <div class="text-sm text-gray-500">Total Dropouts</div>
+                                <div id="total-dropout-kpi" class="text-3xl font-bold text-yellow-600">...</div>
+                            </div>
+                           <div class="bg-yellow-100 p-3 rounded-full">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                            <div>
                                 <div class="text-sm text-gray-500">Dropout Rate</div>
                                 <div id="dropout-rate-kpi" class="text-3xl font-bold text-red-600">...</div>
                             </div>
@@ -98,15 +110,6 @@
                             </div>
                         </div>
                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
-                            <div>
-                                <div class="text-sm text-gray-500">DROPOUT_STUDENTS</div>
-                                <div id="total_dropout-kpi" class="text-3xl font-bold text-yellow-600">...</div>
-                            </div>
-                           <div class="bg-yellow-100 p-3 rounded-full">
-                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                            </div>
-                        </div>
-                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
                             <div>
                                 <div class="text-sm text-gray-500">Enrolled Students</div>
                                 <div id="enrolled-kpi" class="text-3xl font-bold text-green-600">...</div>
@@ -177,7 +180,7 @@
                                 <!-- Section 3: Socio-economic -->
                                 <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
                                     <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Socio-economic Factors</h3>
-                                     <div><label for="parental-education" class="block text-sm font-medium text-gray-700">Parental Education</label><select id="parental-education" name="parental_education" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>Primary</option><option>Secondary</option><option>Higher Secondary</option><option>Post-Graduate</option><option>Other</option></select></div>
+                                    <div><label for="parental-education" class="block text-sm font-medium text-gray-700">Parental Education</label><select id="parental-education" name="parental_education" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>Primary</option><option>Secondary</option><option>Higher Secondary</option><option>Post-Graduate</option><option>Other</option></select></div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label for="family-income" class="block text-sm font-medium text-gray-700">Annual Family Income</label><input type="number" id="family-income" name="family_income" step="1000" placeholder="e.g., 80000" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
                                         <div><label for="distance" class="block text-sm font-medium text-gray-700">Distance from School (km)</label><input type="number" id="distance" name="distance_km" step="0.01" placeholder="e.g., 2.5" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"></div>
@@ -203,6 +206,30 @@
                                  <!-- This container will be dynamically filled -->
                              </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Batch Prediction View -->
+                <div id="batch-view" class="view-container">
+                    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800">Batch Prediction from CSV</h2>
+                        <p class="text-gray-600 mb-4">Upload a CSV file with student data to get predictions for all records. The file must contain the same columns as the training data (e.g., 'School Name', 'Area Type').</p>
+                        
+                        <form id="batch-form">
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <label for="csv-file" class="cursor-pointer">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                    <span class="mt-2 block text-sm font-medium text-gray-900">Click to upload a file</span>
+                                    <span id="file-name" class="mt-1 block text-xs text-gray-500"></span>
+                                    <input id="csv-file" name="csv_file" type="file" class="sr-only" accept=".csv">
+                                </label>
+                            </div>
+                            <button type="submit" id="batch-predict-button" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition-all duration-300 disabled:bg-indigo-300">
+                                Upload and Process
+                            </button>
+                        </form>
+                        
+                        <div id="batch-result-container" class="mt-8"></div>
                     </div>
                 </div>
                 
@@ -232,148 +259,20 @@
     </div>
 
     <script>
-        const resultContainer = document.getElementById('result-content');
-        const form = document.getElementById('prediction-form');
-        const predictButton = document.getElementById('predict-button');
+        let batchResultsData = []; 
 
-        const initialResultHTML = `
-            <div class="text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                Results will be displayed here.
-            </div>`;
-        
-        resultContainer.innerHTML = initialResultHTML;
-                async function updateKpiCards() {
-            try {
-                const response = await fetch('/api/kpi_data');
-                if (!response.ok) throw new Error('Failed to fetch KPI data');
-                const data = await response.json();
-
-                document.getElementById('total-students-kpi').innerText = data.total_students.toLocaleString();
-                document.getElementById('dropout-rate-kpi').innerText = (data.dropout_rate * 100).toFixed(1) + '%';
-                document.getElementById('total_dropout-kpi').innerText = data.total_dropout.toLocaleString();
-                document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
-            } catch (error) {
-                console.error("KPI Update Error:", error);
-                document.getElementById('total-students-kpi').innerText = 'Error';
-                document.getElementById('dropout-rate-kpi').innerText = 'Error';
-                document.getElementById('total_dropout-kpi').innerText = 'Error';
-                document.getElementById('enrolled-kpi').innerText = 'Error';
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            updateKpiCards();
-            resultContainer.innerHTML = `
-                <div class="text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    Results will be displayed here.
-                </div>`;
-        });
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            predictButton.disabled = true;
-            predictButton.innerText = 'Analyzing...';
-            
-            resultContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center">
-                    <div class="loader"></div>
-                    <p class="text-gray-500 mt-4">Running prediction and generating AI insights...</p>
-                </div>`;
-
-            const formData = new FormData(form);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Prediction failed.');
-                }
-                const result = await response.json();
-                
-                displayResults(result);
-                updateKpiCards();
-
-            } catch (error) {
-                console.error('Error:', error);
-                displayError(error.message);
-            } finally {
-                predictButton.disabled = false;
-                predictButton.innerText = 'Predict Dropout Risk';
-            }
-        });
-
-        function displayResults(result) {
-            console.log("Data received from backend:", result);
-
-            const riskLevel = result.risk_level;
-            const riskScore = (typeof result.risk_score === 'number') ? result.risk_score : 0;
-            const prediction = result.prediction;
-
-            let color = 'indigo';
-            if (riskLevel === 'High') color = 'red';
-            if (riskLevel === 'Medium') color = 'yellow';
-            if (riskLevel === 'Low') color = 'green';
-
-            let interventionsHTML = '';
-            if (result.interventions) {
-                interventionsHTML = `
-                    <div class="mt-8 text-left animate-fadeIn">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">✨ AI-Powered Interventions</h3>
-                        <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg whitespace-pre-wrap font-mono text-sm text-gray-700">
-${result.interventions}
-                        </div>
-                    </div>`;
-            }
-            
-            const displayPrediction = prediction || "N/A";
-            const displayRiskLevel = riskLevel || "N/A";
-
-            resultContainer.innerHTML = `
-                <div class="w-full animate-fadeIn">
-                    <p class="text-lg">Predicted Status:</p>
-                    <p class="text-4xl font-extrabold mb-4 text-${color}-600">${displayPrediction}</p>
-                    <p class="text-lg mt-6">Risk Level:</p>
-                    <p class="text-3xl font-bold mb-4 text-${color}-600">${displayRiskLevel}</p>
-                    <p class="text-lg mt-6">Risk Score:</p>
-                    <div class="w-full bg-gray-200 rounded-full h-6 mt-2">
-                        <div class="bg-${color}-600 h-6 rounded-full text-white flex items-center justify-center" style="width: ${riskScore}%;">
-                            <span>${riskScore.toFixed(0)}%</span>
-                        </div>
-                    </div>
-                    ${interventionsHTML}
-                </div>`;
-        }
-
-        function displayError(message) {
-             resultContainer.innerHTML = `
-                <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center animate-fadeIn">
-                    <h3 class="font-bold">An Error Occurred</h3>
-                    <p>${message}</p>
-                </div>`;
-        }
-        
-        // --- Navigation Logic ---
         const pageTitles = {
-            dashboard: 'Dashboard', prediction: 'New Prediction', 'school-report': 'School-wise Analysis',
-            'area-report': 'Area-wise Analysis', 'gender-report': 'Gender-wise Analysis',
-            'caste-report': 'Caste-wise Analysis', 'age-report': 'Age & Standard-wise Analysis',
+            dashboard: 'Dashboard', 
+            prediction: 'New Prediction',
+            batch: 'Batch Prediction', 
+            'school-report': 'School-wise Analysis',
+            'area-report': 'Area-wise Analysis', 
+            'gender-report': 'Gender-wise Analysis',
+            'caste-report': 'Caste-wise Analysis', 
+            'age-report': 'Age & Standard-wise Analysis',
         };
 
+        // All functions are defined in the global scope to be accessible by HTML onclick attributes
         function showView(viewId, element) {
             document.getElementById('page-title').innerText = pageTitles[viewId];
             document.querySelectorAll('.view-container').forEach(c => c.classList.remove('active'));
@@ -398,6 +297,253 @@ ${result.interventions}
                 arrow.classList.add('rotate-180');
             }
         }
+        
+        async function updateKpiCards() {
+            try {
+                const response = await fetch('/api/kpi_data');
+                if (!response.ok) throw new Error('Failed to fetch KPI data');
+                const data = await response.json();
+
+                document.getElementById('total-students-kpi').innerText = data.total_students.toLocaleString();
+                document.getElementById('dropout-rate-kpi').innerText = (data.dropout_rate * 100).toFixed(1) + '%';
+                document.getElementById('total-dropout-kpi').innerText = data.total_dropout.toLocaleString();
+                document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
+            } catch (error) {
+                console.error("KPI Update Error:", error);
+                document.getElementById('total-students-kpi').innerText = 'Error';
+                document.getElementById('dropout-rate-kpi').innerText = 'Error';
+                document.getElementById('total-dropout-kpi').innerText = 'Error';
+                document.getElementById('enrolled-kpi').innerText = 'Error';
+            }
+        }
+
+        function displayResults(result) {
+            const prediction = result.prediction;
+            const riskScore = (typeof result.risk_score === 'number') ? result.risk_score : 0;
+            
+            let color = 'green';
+            if (prediction === 'Dropout') {
+                color = 'red';
+            }
+
+            let interventionsHTML = '';
+            if (result.interventions) {
+                interventionsHTML = `
+                    <div class="mt-8 text-left animate-fadeIn">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">✨ AI-Powered Interventions</h3>
+                        <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg whitespace-pre-wrap font-mono text-sm text-gray-700">${result.interventions}</div>
+                    </div>`;
+            }
+            
+            const resultContainer = document.getElementById('result-content');
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="w-full animate-fadeIn">
+                        <p class="text-lg">Predicted Status:</p>
+                        <p class="text-4xl font-extrabold mb-4 text-${color}-600">${prediction || "N/A"}</p>
+                        <p class="text-lg mt-6">Dropout Risk Score:</p>
+                        <div class="w-full bg-gray-200 rounded-full h-6 mt-2">
+                            <div class="bg-red-600 h-6 rounded-full text-white flex items-center justify-center" style="width: ${riskScore}%;">
+                                <span>${riskScore.toFixed(0)}%</span>
+                            </div>
+                        </div>
+                        ${interventionsHTML}
+                    </div>`;
+            }
+        }
+
+        function displayError(message) {
+            const resultContainer = document.getElementById('result-content');
+            if(resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center animate-fadeIn">
+                        <h3 class="font-bold">An Error Occurred</h3>
+                        <p>${message}</p>
+                    </div>`;
+            }
+        }
+
+        function displayBatchResults(results) {
+            batchResultsData = results;
+            const batchResultContainer = document.getElementById('batch-result-container');
+
+            let tableHTML = `
+                <div class="p-4 bg-green-100 text-green-800 rounded-lg text-center animate-fadeIn mb-4">
+                    <h3 class="font-bold">Success!</h3>
+                    <p>Processed ${results.length} records. See results below.</p>
+                </div>
+                <div class="flex justify-end mb-4">
+                    <button id="download-csv-button" class="bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">
+                        Download Results as CSV
+                    </button>
+                </div>
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Score (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">`;
+
+            results.forEach(row => {
+                const statusColor = row['Predicted Dropout Status'] === 'Dropout' ? 'text-red-600 font-bold' : 'text-green-600';
+                tableHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['School Name']}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['District']}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${statusColor}">${row['Predicted Dropout Status']}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['Predicted Risk Score (%)'].toFixed(2)}</td>
+                    </tr>`;
+            });
+
+            tableHTML += `</tbody></table></div>`;
+            batchResultContainer.innerHTML = tableHTML;
+
+            document.getElementById('download-csv-button').addEventListener('click', () => downloadCSV(batchResultsData));
+        }
+
+        function downloadCSV(data) {
+            if (data.length === 0) return;
+            const headers = Object.keys(data[0]);
+            const csvRows = [headers.join(',')];
+            for (const row of data) {
+                const values = headers.map(header => {
+                    const escaped = ('' + row[header]).replace(/"/g, '\\"');
+                    return `"${escaped}"`;
+                });
+                csvRows.push(values.join(','));
+            }
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'prediction_results.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function displayBatchError(message) {
+            const batchResultContainer = document.getElementById('batch-result-container');
+            batchResultContainer.innerHTML = `
+                <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center animate-fadeIn">
+                    <h3 class="font-bold">An Error Occurred</h3>
+                    <p>${message}</p>
+                </div>`;
+        }
+        
+        // This is the main execution block that runs after the page is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            updateKpiCards();
+
+            const resultContainer = document.getElementById('result-content');
+            const form = document.getElementById('prediction-form');
+            const predictButton = document.getElementById('predict-button');
+            const batchForm = document.getElementById('batch-form');
+            const batchPredictButton = document.getElementById('batch-predict-button');
+            const csvFileInput = document.getElementById('csv-file');
+            const fileNameSpan = document.getElementById('file-name');
+            const batchResultContainer = document.getElementById('batch-result-container');
+
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Results will be displayed here.
+                    </div>`;
+            }
+
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    predictButton.disabled = true;
+                    predictButton.innerText = 'Analyzing...';
+                    
+                    resultContainer.innerHTML = `<div class="flex flex-col items-center justify-center"><div class="loader"></div><p class="text-gray-500 mt-4">Running prediction...</p></div>`;
+
+                    const formData = new FormData(form);
+                    const data = {};
+                    for (let [key, value] of formData.entries()) {
+                        data[key] = value;
+                    }
+
+                    try {
+                        const response = await fetch('/predict', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+                        if (!response.ok) {
+                            throw new Error(result.error || 'Prediction failed.');
+                        }
+                        
+                        displayResults(result);
+                        updateKpiCards();
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        displayError(error.message);
+                    } finally {
+                        predictButton.disabled = false;
+                        predictButton.innerText = 'Predict Dropout Risk';
+                    }
+                });
+            }
+
+            if (csvFileInput) {
+                csvFileInput.addEventListener('change', () => {
+                    fileNameSpan.textContent = csvFileInput.files.length > 0 ? csvFileInput.files[0].name : '';
+                });
+            }
+            
+            if (batchForm) {
+                batchForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (csvFileInput.files.length === 0) {
+                        displayBatchError('Please select a CSV file to upload.');
+                        return;
+                    }
+
+                    batchPredictButton.disabled = true;
+                    batchPredictButton.innerHTML = 'Processing...';
+                    batchResultContainer.innerHTML = `<div class="flex items-center justify-center p-4 bg-blue-50 text-blue-800 rounded-lg"><div class="loader mr-3"></div><p>Processing batch file...</p></div>`;
+
+                    const formData = new FormData();
+                    formData.append('csv_file', csvFileInput.files[0]);
+
+                    try {
+                        const response = await fetch('/batch_predict', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'Batch prediction failed.');
+                        
+                        displayBatchResults(result.predictions);
+                        updateKpiCards();
+                        batchForm.reset();
+                        fileNameSpan.textContent = '';
+
+                    } catch (error) {
+                        displayBatchError(error.message);
+                    } finally {
+                        batchPredictButton.disabled = false;
+                        batchPredictButton.innerHTML = 'Upload and Process';
+                    }
+                });
+            }
+        });
     </script>
 
 </body>

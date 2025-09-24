@@ -4,72 +4,79 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
+import os
 
-def train_model():
-    """
-    Trains a LightGBM model on the student dropout dataset and saves it.
-    """
-    # 1. Load Data
-    try:
-        df = pd.read_csv('karnataka_dropout_enhanced_with_family.csv')
-    except FileNotFoundError:
-        print("Error: 'karnataka_dropout_enhanced_with_family.csv' not found.")
-        print("Please place the dataset in the same directory as this script.")
-        return
+print("--- Starting Model Training ---")
 
-    print("Dataset loaded successfully.")
+# --- 1. Load Data ---
+try:
+    df = pd.read_csv('karnataka_dropout_balanced.csv')
+    print("✅ Data loaded successfully.")
+except FileNotFoundError:
+    print("❌ ERROR: 'karnataka_dropout_enhanced_with_family.csv' not found.")
+    exit()
 
-    # 2. Preprocessing
-    # Drop non-essential columns for this model
-    df = df.drop(['School Name', 'Dropout Reason'], axis=1)
+# --- 2. Preprocessing ---
+# FIX: Standardize all column names to snake_case for consistency
+df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
+print("✅ Column names standardized to snake_case.")
 
-    # Encode the target variable
-    le_status = LabelEncoder()
-    df['Dropout Status'] = le_status.fit_transform(df['Dropout Status'])
-    # 'Dropout' will be 0, 'Enrolled' will be 1. We want to predict dropout.
+# Define features and target using the new snake_case names
+categorical_features = ['area_type', 'gender', 'caste', 'district', 'parental_education']
+numerical_features = ['standard', 'age', 'year', 'family_income', 'prev_academic_performance', 'attendance_record', 'teacher_student_ratio', 'distance_km']
+target_column = 'dropout_status'
 
-    # Identify categorical and numerical features
-    categorical_features = df.select_dtypes(include=['object']).columns
-    
-    # Apply Label Encoding to all categorical features
-    label_encoders = {}
-    for col in categorical_features:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
-        label_encoders[col] = le
-    
-    print("Data preprocessing and encoding complete.")
+# Apply Label Encoding
+label_encoders = {}
+for col in categorical_features:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
+print("✅ Categorical features encoded.")
 
-    # 3. Define Features (X) and Target (y)
-    X = df.drop('Dropout Status', axis=1)
-    y = df['Dropout Status']
+status_encoder = LabelEncoder()
+df[target_column] = status_encoder.fit_transform(df[target_column])
+print(f"✅ Target variable '{target_column}' encoded. Classes: {status_encoder.classes_}")
 
-    # 4. Split Data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+# --- 3. Feature Selection & Data Splitting ---
+features = categorical_features + numerical_features
+X = df[features]
+y = df[target_column]
 
-    # 5. Train LightGBM Model
-    lgbm = lgb.LGBMClassifier(objective='binary', random_state=42)
-    lgbm.fit(X_train, y_train)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+print(f"✅ Data split into training and testing sets.")
 
-    print("Model training complete.")
+# --- 4. Model Training ---
+print("⏳ Training the LightGBM model...")
+lgbm = lgb.LGBMClassifier(random_state=42)
+lgbm.fit(X_train, y_train)
+print("✅ Model training complete.")
 
-    # 6. Evaluate Model
-    y_pred = lgbm.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"\nModel Accuracy: {accuracy:.4f}")
-    print("\nClassification Report:")
-    # We use inverse_transform to show original labels in the report
-    print(classification_report(y_test, y_pred, target_names=le_status.inverse_transform([0, 1])))
+# --- 5. Model Evaluation ---
+y_pred = lgbm.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("\n--- Model Evaluation ---")
+print(f"Accuracy: {accuracy:.4f}")
+print("Classification Report:")
+print(classification_report(y_test, y_pred, target_names=status_encoder.classes_))
+print("------------------------\n")
 
-    # 7. Save the Model and Encoders
-    artifacts = {
-        'model': lgbm,
-        'label_encoders': label_encoders,
-        'status_encoder': le_status,
-        'feature_names': list(X.columns)
-    }
-    joblib.dump(artifacts, 'lgbm_dropout_model.joblib')
-    print("\nTrained model and encoders have been saved to 'lgbm_dropout_model.joblib'")
+# --- 6. Save Model and Artifacts ---
+ASSETS_DIR = 'model_assets'
+MODEL_PATH = os.path.join(ASSETS_DIR, 'lgbm_model.pkl')
 
-if __name__ == '__main__':
-    train_model()
+if not os.path.exists(ASSETS_DIR):
+    os.makedirs(ASSETS_DIR)
+    print(f"✅ Created directory: '{ASSETS_DIR}'")
+
+# All artifacts will now consistently use snake_case
+model_artifacts = {
+    'model': lgbm,
+    'label_encoders': label_encoders,
+    'status_encoder': status_encoder,
+    'feature_names': features
+}
+
+joblib.dump(model_artifacts, MODEL_PATH)
+print(f"✅ Model and artifacts successfully saved to '{MODEL_PATH}'")
+

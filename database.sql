@@ -1,51 +1,38 @@
--- This script creates the table for storing student data and predictions.
--- Run this in your PostgreSQL database (e.g., using psql or a GUI like DBeaver/pgAdmin).
+-- This script creates the definitive table structure for the application.
+-- Run this once in your PostgreSQL database to set up the table correctly.
 
--- Drop the table if it already exists to start fresh (optional)
--- DROP TABLE IF EXISTS student_data;
+-- Drop the table if it exists to ensure a clean start
+DROP TABLE IF EXISTS public.student_predictions;
 
--- Create the table
-CREATE TABLE student_data (
+-- Create the table with an 'id' primary key and all columns expected by the app
+CREATE TABLE IF NOT EXISTS public.student_predictions
+(
     id SERIAL PRIMARY KEY,
-    area_type VARCHAR(50),
-    gender VARCHAR(50),
-    caste VARCHAR(50),
-    standard INT,
-    age INT,
-    year INT,
-    district VARCHAR(100),
-    parental_education VARCHAR(100),
-    family_income INT,
-    prev_academic_performance FLOAT,
-    attendance_record FLOAT,
-    teacher_student_ratio FLOAT,
-    distance_km FLOAT,
-    predicted_status VARCHAR(50),
-    prediction_risk_percent FLOAT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    school_name character varying(255),
+    area_type character varying(50),
+    gender character varying(20),
+    caste character varying(50),
+    standard integer,
+    age integer,
+    year integer,
+    district character varying(100),
+    dropout_reason character varying(100),
+    parental_education character varying(100),
+    family_income bigint,
+    prev_academic_performance double precision,
+    attendance_record double precision,
+    teacher_student_ratio double precision,
+    distance_km double precision,
+    predicted_dropout_status character varying(50),
+    predicted_risk_score double precision,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
--- Optional: Add comments to columns for clarity
-COMMENT ON COLUMN student_data.id IS 'Unique identifier for each record';
-COMMENT ON COLUMN student_data.predicted_status IS 'The status predicted by the ML model (Dropout/Enrolled)';
-COMMENT ON COLUMN student_data.prediction_risk_percent IS 'The model''s confidence in the dropout prediction (0-100)';
-COMMENT ON COLUMN student_data.created_at IS 'Timestamp when the record was created';
+-- Set the owner of the table
+ALTER TABLE IF EXISTS public.student_predictions
+    OWNER to student;
 
--- You can insert some dummy data to test your Power BI connection if you wish
-/*
-INSERT INTO student_data (
-    area_type, gender, caste, standard, age, year, district,
-    parental_education, family_income, prev_academic_performance,
-    attendance_record, teacher_student_ratio, distance_km,
-    predicted_status, prediction_risk_percent
-) VALUES (
-    'Urban', 'Female', 'General', 8, 13, 2024, 'Bengaluru Urban',
-    'Graduate', 75000, 85.5, 92.3, 25.5, 2.1,
-    'Enrolled', 15.2
-);
-*/
+-- Add comments for clarity
+COMMENT ON TABLE public.student_predictions
+    IS 'Stores historical data, single predictions, and batch predictions.';
 
--- Grant usage for your app's database user if necessary
--- Make sure the user you connect with in the Flask app has the correct permissions.
--- GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE student_data TO your_app_user;
--- GRANT USAGE, SELECT ON SEQUENCE student_data_id_seq TO your_app_user;
