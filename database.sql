@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS public.student_predictions;
 CREATE TABLE IF NOT EXISTS public.student_predictions
 (
     id SERIAL PRIMARY KEY,
+    student_name character varying(255),
     school_name character varying(255),
     area_type character varying(50),
     gender character varying(20),

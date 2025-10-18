@@ -32,28 +32,36 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* --- CRITICAL FIX: Hide Modals by default to show Public Dashboard --- */
+        #login-modal, #register-modal {
+            display: none; 
+        }
     </style>
 </head>
 <body class="bg-gray-100">
 
     <div class="flex h-screen bg-gray-100">
-        <!-- Sidebar -->
         <aside class="w-64 bg-white shadow-lg flex flex-col">
             <div class="p-6 text-2xl font-bold text-indigo-600 border-b">
                 Student Dropout Analytics
             </div>
-            <nav class="flex-1 p-4 space-y-2">
+            <nav id="sidebar-nav" class="flex-1 p-4 space-y-2">
                 <a href="#" class="sidebar-link active flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('dashboard', this)">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     Dashboard
                 </a>
-                <a href="#" class="sidebar-link flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('prediction', this)">
+                <a href="#" class="sidebar-link authenticated-feature" data-roles="admin,teacher" style="display:none;" flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('prediction', this)">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     New Prediction
                 </a>
-                <a href="#" class="sidebar-link flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('batch', this)">
+                <a href="#" class="sidebar-link authenticated-feature" data-roles="admin,teacher" style="display:none;" flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('batch', this)">
                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Batch Prediction
+                </a>
+                <a href="#" class="sidebar-link authenticated-feature" data-roles="admin" style="display:none;" flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="showView('reports', this)">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6"></path></svg>
+                    Download Reports
                 </a>
                 <div>
                     <button class="sidebar-link w-full flex items-center py-3 px-4 rounded-lg transition-all duration-200 hover:bg-gray-200" onclick="toggleSubmenu()">
@@ -70,16 +78,25 @@
                     </div>
                 </div>
             </nav>
+             <div class="mt-auto p-4 border-t">
+                <button id="logout-button" class="w-full bg-red-500 text-white font-bold py-2 px-4 rounded-md hover:bg-red-600 hidden">
+                    Logout (<span id="user-display"></span>)
+                </button>
+                <button id="show-register-button" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600">
+                    Register
+                </button>
+                <button id="show-login-button" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 mt-2">
+                    Login
+                </button>
+            </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 flex flex-col overflow-hidden">
             <header class="p-6 bg-white border-b flex justify-between items-center">
                 <h1 id="page-title" class="text-3xl font-bold text-gray-800">Dashboard</h1>
             </header>
             
             <div class="flex-1 overflow-y-auto p-6">
-                <!-- Dashboard View -->
                 <div id="dashboard-view" class="view-container active">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
@@ -88,7 +105,7 @@
                                 <div id="total-students-kpi" class="text-3xl font-bold text-gray-900">...</div>
                             </div>
                             <div class="bg-indigo-100 p-3 rounded-full">
-                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             </div>
                         </div>
                          <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
@@ -125,31 +142,29 @@
                     </div>
                 </div>
 
-                <!-- Prediction View -->
                 <div id="prediction-view" class="view-container">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="bg-white p-8 rounded-2xl shadow-lg">
                             <h2 class="text-2xl font-bold mb-6 text-gray-800">Enter Student Details</h2>
                             <form id="prediction-form" class="space-y-6">
                                 
-                                <!-- Section 1: Demographics -->
                                 <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
                                     <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Student Demographics</h3>
+                                    <div>
+                                        <label for="student-name" class="block text-sm font-medium text-gray-700">Student Name</label>
+                                        <input type="text" id="student-name" name="student_name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g., John Doe">
+                                    </div>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label for="school-name" class="block text-sm font-medium text-gray-700">School Name</label>
                                             <select id="school-name" name="school_name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                                {% for school in school_names %}
-                                                <option value="{{ school }}">{{ school }}</option>
-                                                {% endfor %}
+                                                <option>Loading...</option>
                                             </select>
                                         </div>
                                         <div>
                                             <label for="district" class="block text-sm font-medium text-gray-700">District</label>
                                             <select id="district" name="district" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                                {% for district in districts %}
-                                                <option value="{{ district }}">{{ district }}</option>
-                                                {% endfor %}
+                                                <option>Loading...</option>
                                             </select>
                                         </div>
                                     </div>
@@ -164,7 +179,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Section 2: Academic & School -->
                                 <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
                                     <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Academic & School Factors</h3>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -177,7 +191,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Section 3: Socio-economic -->
                                 <div class="space-y-4 p-4 bg-gray-50 rounded-lg border">
                                     <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Socio-economic Factors</h3>
                                     <div><label for="parental-education" class="block text-sm font-medium text-gray-700">Parental Education</label><select id="parental-education" name="parental_education" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"><option>Primary</option><option>Secondary</option><option>Higher Secondary</option><option>Post-Graduate</option><option>Other</option></select></div>
@@ -188,9 +201,7 @@
                                     <div>
                                         <label for="dropout-reason" class="block text-sm font-medium text-gray-700">Anticipated Dropout Reason</label>
                                         <select id="dropout-reason" name="dropout_reason" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                            {% for reason in dropout_reasons %}
-                                            <option value="{{ reason }}">{{ reason }}</option>
-                                            {% endfor %}
+                                            <option>Loading...</option>
                                         </select>
                                     </div>
                                 </div>
@@ -198,18 +209,25 @@
                                 <button type="submit" id="predict-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:bg-indigo-300">
                                     Predict Dropout Risk
                                 </button>
+                                <button type="reset" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-300">
+                                        Reset
+                                </button>
                             </form>
                         </div>
                         <div id="result-container" class="bg-white p-8 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center">
                              <h2 class="text-2xl font-bold mb-4 text-gray-800">Prediction Result</h2>
                              <div id="result-content" class="w-full">
-                                 <!-- This container will be dynamically filled -->
+                                 <div class="text-gray-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                    Results will be displayed here.
+                                </div>
                              </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Batch Prediction View -->
                 <div id="batch-view" class="view-container">
                     <div class="bg-white p-8 rounded-2xl shadow-lg max-w-4xl mx-auto">
                         <h2 class="text-2xl font-bold mb-6 text-gray-800">Batch Prediction from CSV</h2>
@@ -227,13 +245,131 @@
                             <button type="submit" id="batch-predict-button" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition-all duration-300 disabled:bg-indigo-300">
                                 Upload and Process
                             </button>
+                            <button type="button" id="reset-batch-form" class="mt-3 w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-300">
+                                    Reset
+                            </button>
                         </form>
                         
                         <div id="batch-result-container" class="mt-8"></div>
                     </div>
                 </div>
-                
-                <!-- Detailed Report Views -->
+
+                <div id="reports-view" class="view-container">
+                    <div class="bg-white p-8 rounded-2xl shadow-lg max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-bold mb-6 text-gray-800">Generate & Download Reports</h2>
+                        <p class="text-gray-600 mb-6">Filter the student data and generate detailed reports in Excel or PDF format. (Admin Only)</p>
+
+                        <form id="report-form" class="space-y-6">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="report-type" class="block text-sm font-medium text-gray-700">Data Set</label>
+                                    <select id="report-type" name="report_type" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="all">All Records</option>
+                                        <option value="dropout">Only Dropout Risks</option>
+                                        <option value="enrolled">Only Enrolled</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="report-format" class="block text-sm font-medium text-gray-700">Report Format</label>
+                                    <select id="report-format" name="format" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option value="excel">Excel (.xlsx)</option>
+                                        <option value="pdf">PDF (.pdf)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-span-1 md:col-span-3">
+                                    <label for="report-schools" class="block text-sm font-medium text-gray-700">Filter by School (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-schools" name="schools" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24"></select>
+                                        <button type="button" onclick="clearMultiSelect('report-schools')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple schools.</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="report-years" class="block text-sm font-medium text-gray-700">Filter by Academic Year (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-years" name="years" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24"></select>
+                                        <button type="button" onclick="clearMultiSelect('report-years')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="report-districts" class="block text-sm font-medium text-gray-700">Filter by District (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-districts" name="districts" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24"></select>
+                                        <button type="button" onclick="clearMultiSelect('report-districts')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="report-areas" class="block text-sm font-medium text-gray-700">Filter by Area (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-areas" name="area_type" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24">
+                                            <option value="Urban">Urban</option>
+                                            <option value="Semi-Urban">Semi-Urban</option>
+                                            <option value="Rural">Rural</option>
+                                        </select>
+                                        <button type="button" onclick="clearMultiSelect('report-areas')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label for="report-genders" class="block text-sm font-medium text-gray-700">Filter by Gender (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-genders" name="gender" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24">
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                        <button type="button" onclick="clearMultiSelect('report-genders')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="report-castes" class="block text-sm font-medium text-gray-700">Filter by Caste (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-castes" name="caste" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24">
+                                            <option value="General">General</option>
+                                            <option value="OBC">OBC</option>
+                                            <option value="SC">SC</option>
+                                            <option value="ST">ST</option>
+                                        </select>
+                                        <button type="button" onclick="clearMultiSelect('report-castes')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label for="report-reasons" class="block text-sm font-medium text-gray-700">Filter by Reason (Optional)</label>
+                                    <div class="flex items-center space-x-2">
+                                        <select id="report-reasons" name="dropout_reason" multiple class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 h-24"></select>
+                                        <button type="button" onclick="clearMultiSelect('report-reasons')" class="text-gray-500 hover:text-red-500 text-sm font-semibold p-2">Clear</button>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <button type="button" id="preview-report-button" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition-all duration-300">
+                                Preview Report Data
+                            </button>
+                            <button type="submit" id="download-report-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition-all duration-300 disabled:bg-indigo-300">
+                                Download Report
+                            </button>
+                        </form>
+                        
+                        <div id="report-preview-container" class="mt-8">
+                             <h3 class="text-xl font-bold mb-3">Report Preview (First 10 Rows)</h3>
+                             <div id="report-preview-content" class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm">
+                                 <p class="text-gray-500">Click 'Preview Report Data' to see a snapshot.</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="school-report-view" class="view-container">
                     <div class="bg-white p-6 rounded-xl shadow-md h-[70vh]"><iframe title="School-wise Analysis" class="w-full h-full border-0 rounded-lg" src="https://app.powerbi.com/view?r=eyJrIjoiNmE4YmI4M2EtZjdkZS00MDc2LTg5MmEtZDU4MTIzMmU5MzAwIiwidCI6IjQ1ZjFjZGUzLTRmNzEtNDlhOC04NWYyLTczMDkyMTRlZTFkMiJ9" allowfullscreen="true"></iframe></div>
                     <div class="mt-8"><h2 class="text-2xl font-bold text-gray-800 mb-4">Interventions for Schools</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Underperforming School Program</h3><p class="text-gray-600 mt-2">Identify the top 5 schools with the highest dropout rates. Allocate additional resources, teacher training, and mentorship programs specifically for them.</p></div><div class="bg-white p-6 rounded-xl shadow-md"><h3 class="text-lg font-bold text-indigo-600">Best Practice Sharing</h3><p class="text-gray-600 mt-2">Analyze schools with the lowest dropout rates to identify successful strategies. Organize workshops for other school administrators to share these findings.</p></div></div></div>
@@ -258,21 +394,78 @@
         </main>
     </div>
 
-    <script>
-        let batchResultsData = []; 
+    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation();">
+            <h2 class="text-3xl font-bold mb-6 text-center text-indigo-600">Login to Dashboard</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="login-username" name="username" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="login-password" name="password" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" id="login-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition-all duration-300">
+                    Log In
+                </button>
+            </form>
+            <p id="login-message" class="text-center mt-4 text-red-600 font-medium"></p>
+        </div>
+    </div>
+    
+    <div id="register-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation();">
+            <h2 class="text-3xl font-bold mb-6 text-center text-blue-600">User Registration</h2>
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label for="register-username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="register-username" name="username" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="register-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="register-password" name="password" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                 <div>
+                    <label for="register-role" class="block text-sm font-medium text-gray-700">Account Role</label>
+                    <select id="register-role" name="role" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="teacher">Teacher</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" id="register-button" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 transition-all duration-300">
+                    Register
+                </button>
+            </form>
+            <p id="register-message" class="text-center mt-4 text-red-600 font-medium"></p>
+            <button id="hide-register-button" class="w-full mt-4 text-sm text-gray-500 hover:text-gray-700">
+                Back to Login
+            </button>
+        </div>
+    </div>
 
+
+    <script>
+        // --- Global State ---
+        let batchResultsData = [];
+        let isAuthenticated = false;
+        let currentUserRole = 'public'; // Default role for unauthenticated users
+        
         const pageTitles = {
             dashboard: 'Dashboard', 
             prediction: 'New Prediction',
-            batch: 'Batch Prediction', 
+            batch: 'Batch Prediction',
+            reports: 'Generate & Download Reports', 
             'school-report': 'School-wise Analysis',
             'area-report': 'Area-wise Analysis', 
             'gender-report': 'Gender-wise Analysis',
             'caste-report': 'Caste-wise Analysis', 
             'age-report': 'Age & Standard-wise Analysis',
         };
+        
+        // --- Core UI Functions ---
 
-        // All functions are defined in the global scope to be accessible by HTML onclick attributes
+        /** Toggles view containers and updates the page title/sidebar active state. */
         function showView(viewId, element) {
             document.getElementById('page-title').innerText = pageTitles[viewId];
             document.querySelectorAll('.view-container').forEach(c => c.classList.remove('active'));
@@ -282,10 +475,19 @@
             
             if(element.parentElement.classList.contains('submenu')){
                 element.parentElement.previousElementSibling.classList.add('active');
+            } else {
+                element.classList.add('active');
             }
-            element.classList.add('active');
+            
+            if (viewId === 'prediction' && isAuthenticated) {
+                loadDropdownData();
+            }
+            if (viewId === 'reports' && isAuthenticated) {
+                loadReportFilters();
+            }
         }
 
+        /** Toggles the detailed reports submenu visibility. */
         function toggleSubmenu() {
             const submenu = document.getElementById('submenu');
             const arrow = document.getElementById('arrow');
@@ -297,34 +499,267 @@
                 arrow.classList.add('rotate-180');
             }
         }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
         
-        async function updateKpiCards() {
+        /** Clears all selected options in a multi-select box. */
+        function clearMultiSelect(selectId) {
+            const selectElement = document.getElementById(selectId);
+            if (selectElement) {
+                for (let i = 0; i < selectElement.options.length; i++) {
+                    selectElement.options[i].selected = false;
+                }
+            }
+        }
+        
+        // --- Role-Based Access Control (RBAC) ---
+
+        /** Updates UI elements based on the current user role (public, teacher, admin). */
+        function applyRoleRestrictions(role) {
+            currentUserRole = role;
+            const authenticated = role !== 'public';
+            
+            // Toggle sidebar links based on data-roles attribute
+            document.querySelectorAll('.authenticated-feature').forEach(el => {
+                const roles = el.getAttribute('data-roles');
+                const requiredRoles = roles ? roles.split(',') : [];
+                
+                // Show feature if authenticated AND user's role is in the allowed list
+                if (authenticated && requiredRoles.includes(role)) {
+                    el.style.display = 'flex';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+            
+            // Detailed Reports Submenu visibility
+            const detailedReportsMenu = document.querySelector('#submenu').parentElement;
+            if (authenticated) { 
+                 detailedReportsMenu.style.display = 'block';
+            } else {
+                 detailedReportsMenu.style.display = 'none';
+            }
+
+            // Authentication UI visibility
+            closeModal('login-modal');
+            closeModal('register-modal');
+            
+            document.getElementById('logout-button').style.display = authenticated ? 'block' : 'none';
+            document.getElementById('show-login-button').style.display = authenticated ? 'none' : 'block';
+            document.getElementById('show-register-button').style.display = authenticated ? 'none' : 'block';
+            document.getElementById('user-display').innerText = authenticated ? role.toUpperCase() : '';
+
+            // Update KPI data based on public or authenticated endpoints
+            updateKpiCards(role);
+            
+            // If the user logs out, ensure they see the dashboard
+            if (!authenticated) {
+                showView('dashboard', document.querySelector('.sidebar-link'));
+            }
+        }
+        
+        // --- Authentication & Registration Logic ---
+
+        async function checkAuthStatus() {
             try {
-                const response = await fetch('/api/kpi_data');
+                const response = await fetch('/api/check_auth');
+                const data = await response.json();
+                if (data.authenticated) {
+                    isAuthenticated = true;
+                    applyRoleRestrictions(data.user.role);
+                } else {
+                    isAuthenticated = false;
+                    applyRoleRestrictions('public');
+                }
+            } catch (error) {
+                console.error("Auth check error:", error);
+                isAuthenticated = false;
+                applyRoleRestrictions('public');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const form = document.getElementById('login-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            const loginButton = document.getElementById('login-button');
+            const messageElement = document.getElementById('login-message');
+
+            loginButton.disabled = true;
+            messageElement.innerText = 'Logging in...';
+            messageElement.classList.remove('text-green-600', 'text-red-600');
+            messageElement.classList.add('text-red-600');
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageElement.innerText = 'Login successful!';
+                    messageElement.classList.remove('text-red-600');
+                    messageElement.classList.add('text-green-600');
+                    form.reset();
+                    await checkAuthStatus(); 
+                } else {
+                    messageElement.innerText = result.message || 'Login failed.';
+                }
+            } catch (error) {
+                messageElement.innerText = 'An error occurred during login.';
+            } finally {
+                loginButton.disabled = false;
+            }
+        }
+
+        async function handleRegistration(e) {
+            e.preventDefault();
+            const form = document.getElementById('register-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            const registerButton = document.getElementById('register-button');
+            const messageElement = document.getElementById('register-message');
+            
+            registerButton.disabled = true;
+            messageElement.innerText = 'Registering...';
+            messageElement.classList.remove('text-green-600', 'text-red-600');
+            messageElement.classList.add('text-red-600');
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    const roleText = data.role.charAt(0).toUpperCase() + data.role.slice(1);
+                    messageElement.innerText = `${roleText} registration successful! Please log in.`;
+                    messageElement.classList.remove('text-red-600');
+                    messageElement.classList.add('text-green-600');
+                    form.reset();
+                    
+                    closeModal('register-modal');
+                    document.getElementById('login-modal').style.display = 'flex';
+                    document.getElementById('login-message').innerText = `${roleText} registration successful. Please log in.`;
+                    document.getElementById('login-message').classList.remove('text-red-600');
+                    document.getElementById('login-message').classList.add('text-green-600');
+                } else {
+                    messageElement.innerText = result.message || 'Registration failed.';
+                }
+            } catch (error) {
+                messageElement.innerText = 'An error occurred during registration.';
+            } finally {
+                registerButton.disabled = false;
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+                await checkAuthStatus(); 
+                document.getElementById('login-message').innerText = '';
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        }
+
+        // --- Data Fetching & UI Update Functions ---
+
+        async function updateKpiCards(role) {
+            const endpoint = role === 'public' ? '/api/public_kpi_data' : '/api/kpi_data';
+            const kpiIds = ['total-students-kpi', 'dropout-rate-kpi', 'total-dropout-kpi', 'enrolled-kpi'];
+
+            if (role === 'public') {
+                document.getElementById('total-dropout-kpi').innerText = data.total_dropout.toLocaleString();
+                document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
+            }
+            
+            try {
+                const response = await fetch(endpoint);
                 if (!response.ok) throw new Error('Failed to fetch KPI data');
                 const data = await response.json();
 
                 document.getElementById('total-students-kpi').innerText = data.total_students.toLocaleString();
-                document.getElementById('dropout-rate-kpi').innerText = (data.dropout_rate * 100).toFixed(1) + '%';
-                document.getElementById('total-dropout-kpi').innerText = data.total_dropout.toLocaleString();
-                document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
+                document.getElementById('dropout-rate-kpi').innerText = (data.dropout_rate).toFixed(1) + '%';
+                
+                if (data.total_dropout !== undefined) {
+                    document.getElementById('total-dropout-kpi').innerText = data.total_dropout.toLocaleString();
+                    document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
+                }
+                
             } catch (error) {
                 console.error("KPI Update Error:", error);
                 document.getElementById('total-students-kpi').innerText = 'Error';
                 document.getElementById('dropout-rate-kpi').innerText = 'Error';
-                document.getElementById('total-dropout-kpi').innerText = 'Error';
-                document.getElementById('enrolled-kpi').innerText = 'Error';
             }
         }
 
+        /** CRITICAL FIX: Populates all three prediction form dropdowns (school, district, reason). */
+        async function loadDropdownData() {
+            try {
+                const response = await fetch('/api/dropdown_data');
+                if (!response.ok) throw new Error('Failed to fetch dropdown data.');
+                const data = await response.json();
+
+                const schoolSelect = document.getElementById('school-name');
+                const districtSelect = document.getElementById('district');
+                const reasonSelect = document.getElementById('dropout-reason');
+                
+                // Helper to create options
+                const createOptions = (list, defaultText = "Select...") => {
+                    let options = `<option value="">${defaultText}</option>`;
+                    options += list.map(item => `<option value="${item}">${item}</option>`).join('');
+                    return options;
+                };
+
+                schoolSelect.innerHTML = createOptions(data.schools, "Select School");
+                districtSelect.innerHTML = createOptions(data.districts, "Select District");
+                reasonSelect.innerHTML = createOptions(data.reasons, "Select Reason");
+                
+            } catch (error) {
+                console.error("Error loading dropdown data:", error);
+            }
+        }
+        
+        /** CRITICAL FIX: Populates all report filter multi-selects dynamically. */
+        async function loadReportFilters() {
+             try {
+                const response = await fetch('/api/dropdown_data');
+                if (!response.ok) throw new Error('Failed to fetch report filter data.');
+                const data = await response.json();
+
+                const yearSelect = document.getElementById('report-years');
+                const districtSelect = document.getElementById('report-districts');
+                const schoolSelect = document.getElementById('report-schools');
+                const reasonSelect = document.getElementById('report-reasons');
+                
+                const createMultiOptions = (list) => list.map(item => `<option value="${item}">${item}</option>`).join('');
+
+                yearSelect.innerHTML = createMultiOptions(data.years);
+                districtSelect.innerHTML = createMultiOptions(data.districts);
+                schoolSelect.innerHTML = createMultiOptions(data.schools);
+                reasonSelect.innerHTML = createMultiOptions(data.reasons);
+
+
+            } catch (error) {
+                console.error("Error loading report filter data:", error);
+            }
+        }
+        
+        // --- Prediction/Result Display Functions (unchanged) ---
+
         function displayResults(result) {
             const prediction = result.prediction;
-            const riskScore = (typeof result.risk_score === 'number') ? result.risk_score : 0;
+            const riskScore = (typeof result.risk_score === 'number') ? Math.min(100, Math.max(0, result.risk_score)) : 0; 
             
-            let color = 'green';
-            if (prediction === 'Dropout') {
-                color = 'red';
-            }
+            let color = prediction === 'Dropout' ? 'red' : 'green';
 
             let interventionsHTML = '';
             if (result.interventions) {
@@ -362,7 +797,16 @@
                     </div>`;
             }
         }
-
+        
+        function displayBatchError(message) {
+            const batchResultContainer = document.getElementById('batch-result-container');
+            batchResultContainer.innerHTML = `
+                <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center animate-fadeIn">
+                    <h3 class="font-bold">An Error Occurred</h3>
+                    <p>${message}</p>
+                </div>`;
+        }
+        
         function displayBatchResults(results) {
             batchResultsData = results;
             const batchResultContainer = document.getElementById('batch-result-container');
@@ -381,7 +825,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Score (%)</th>
@@ -391,12 +835,14 @@
 
             results.forEach(row => {
                 const statusColor = row['Predicted Dropout Status'] === 'Dropout' ? 'text-red-600 font-bold' : 'text-green-600';
+                const riskColor = row['Predicted Risk Score (%)'] >= 70 ? 'text-red-600 font-bold' : row['Predicted Risk Score (%)'] >= 40 ? 'text-yellow-500 font-semibold' : 'text-green-600';
+
                 tableHTML += `
                     <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['School Name']}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['District']}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['Student Name'] || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['District'] || 'N/A'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm ${statusColor}">${row['Predicted Dropout Status']}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${row['Predicted Risk Score (%)'].toFixed(2)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm ${riskColor}">${row['Predicted Risk Score (%)'].toFixed(2)}</td>
                     </tr>`;
             });
 
@@ -429,50 +875,226 @@
             document.body.removeChild(a);
         }
 
-        function displayBatchError(message) {
-            const batchResultContainer = document.getElementById('batch-result-container');
-            batchResultContainer.innerHTML = `
-                <div class="p-4 bg-red-100 text-red-800 rounded-lg text-center animate-fadeIn">
-                    <h3 class="font-bold">An Error Occurred</h3>
-                    <p>${message}</p>
-                </div>`;
-        }
-        
-        // This is the main execution block that runs after the page is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            updateKpiCards();
+        // --- Report Generation Logic ---
 
-            const resultContainer = document.getElementById('result-content');
+        function getReportFilters() {
+            const filters = {};
+            
+            const multiselectMapping = [
+                { id: 'report-years', name: 'years' },
+                { id: 'report-districts', name: 'districts' },
+                { id: 'report-schools', name: 'schools' },
+                { id: 'report-areas', name: 'area_type' }, 
+                { id: 'report-genders', name: 'gender' },   
+                { id: 'report-castes', name: 'caste' },     
+                { id: 'report-reasons', name: 'dropout_reason' }
+            ];
+            
+            multiselectMapping.forEach(item => {
+                const selectEl = document.getElementById(item.id);
+                if (selectEl) {
+                    const selectedOptions = Array.from(selectEl.selectedOptions).map(option => option.value);
+                    if (selectedOptions.length > 0) {
+                        filters[item.name] = selectedOptions;
+                    }
+                }
+            });
+
+            filters.report_type = document.getElementById('report-type').value;
+            filters.format = document.getElementById('report-format').value;
+            
+            return filters;
+        }
+
+        async function previewReport() {
+            const filters = getReportFilters();
+            const previewButton = document.getElementById('preview-report-button');
+            const previewContent = document.getElementById('report-preview-content');
+            
+            previewButton.disabled = true;
+            previewButton.innerText = 'Fetching Preview...';
+            previewContent.innerHTML = `<div class="flex items-center justify-center"><div class="loader"></div><p class="text-gray-500 mt-4">Loading data...</p></div>`;
+
+            try {
+                const previewFilters = {...filters};
+                delete previewFilters.format;
+
+                const response = await fetch('/api/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filters: previewFilters, action: 'preview' })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to get report preview.');
+                }
+                
+                const data = result.preview_data;
+                const total = result.total_count;
+
+                if (data.length === 0) {
+                    previewContent.innerHTML = `<p class="text-yellow-600 font-bold">No records found matching the filters.</p>`;
+                    return;
+                }
+
+                let tableHTML = `<p class="font-semibold mb-2">Showing 10 of ${total} records:</p>`;
+                tableHTML += `<table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-200"><tr>`;
+                
+                const previewHeaders = ['id', 'student_name', 'school_name', 'district', 'predicted_dropout_status', 'predicted_risk_score'];
+
+                previewHeaders.forEach(h => {
+                    tableHTML += `<th class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase">${h.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`;
+                });
+                tableHTML += `</tr></thead><tbody class="divide-y divide-gray-200">`;
+                
+                data.forEach(row => {
+                    tableHTML += `<tr>`;
+                    previewHeaders.forEach(h => {
+                         let cellValue = row[h];
+                         if (h === 'predicted_risk_score' && typeof cellValue === 'number') {
+                             cellValue = cellValue.toFixed(2) + '%';
+                         }
+                         tableHTML += `<td class="px-3 py-2 whitespace-nowrap">${cellValue}</td>`;
+                    });
+                    tableHTML += `</tr>`;
+                });
+
+                tableHTML += `</tbody></table>`;
+                previewContent.innerHTML = tableHTML;
+
+            } catch (error) {
+                previewContent.innerHTML = `<p class="text-red-600 font-bold">Error: ${error.message}</p>`;
+            } finally {
+                previewButton.disabled = false;
+                previewButton.innerText = 'Preview Report Data';
+            }
+        }
+
+        async function downloadReport(e) {
+            e.preventDefault();
+            const filters = getReportFilters();
+            const downloadButton = document.getElementById('download-report-button');
+            const originalText = 'Download Report';
+
+            downloadButton.disabled = true;
+            downloadButton.innerHTML = 'Generating...';
+
+            try {
+                const reportFormat = filters.format;
+                const downloadFilters = {...filters};
+                delete downloadFilters.format; 
+
+                const response = await fetch('/api/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        filters: downloadFilters, 
+                        action: 'download', 
+                        format: reportFormat 
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'File generation failed.');
+                }
+                
+                const blob = await response.blob();
+                
+                let filename = `student_report.${reportFormat}`;
+                const disposition = response.headers.get('Content-Disposition');
+                if (disposition) {
+                    const match = disposition.match(/filename="?(.+)"?$/);
+                    if (match && match[1]) {
+                        filename = match[1].replace(/"/g, ''); 
+                    }
+                }
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                alert(`Download failed: ${error.message}`);
+            } finally {
+                downloadButton.disabled = false;
+                downloadButton.innerText = originalText;
+            }
+        }
+
+        // --- Initialization Block ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Initial Authentication Check to determine user role
+            checkAuthStatus();
+            
+            // 2. Event Listeners for Authentication and Registration
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('register-form').addEventListener('submit', handleRegistration);
+            document.getElementById('logout-button').addEventListener('click', handleLogout);
+            
+            // Modal Toggles
+            document.getElementById('show-login-button').addEventListener('click', () => {
+                 document.getElementById('register-modal').style.display = 'none';
+                 document.getElementById('login-modal').style.display = 'flex';
+                 document.getElementById('login-message').innerText = ''; 
+            });
+            document.getElementById('show-register-button').addEventListener('click', () => {
+                 document.getElementById('login-modal').style.display = 'none';
+                 document.getElementById('register-modal').style.display = 'flex';
+                 document.getElementById('register-message').innerText = ''; 
+            });
+            document.getElementById('hide-register-button').addEventListener('click', () => {
+                 closeModal('register-modal');
+                 document.getElementById('login-modal').style.display = 'flex';
+                 document.getElementById('login-message').innerText = ''; 
+            });
+
+            // ESC key to close modal (FIX)
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal('login-modal');
+                    closeModal('register-modal');
+                }
+            });
+
+            // Click outside to close modal (FIX)
+            document.getElementById('login-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'login-modal') closeModal('login-modal');
+            });
+            document.getElementById('register-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'register-modal') closeModal('register-modal');
+            });
+
+
+            // 3. Event Listener for Single Prediction
             const form = document.getElementById('prediction-form');
             const predictButton = document.getElementById('predict-button');
-            const batchForm = document.getElementById('batch-form');
-            const batchPredictButton = document.getElementById('batch-predict-button');
-            const csvFileInput = document.getElementById('csv-file');
-            const fileNameSpan = document.getElementById('file-name');
-            const batchResultContainer = document.getElementById('batch-result-container');
-
-            if (resultContainer) {
-                resultContainer.innerHTML = `
-                    <div class="text-gray-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        Results will be displayed here.
-                    </div>`;
-            }
-
+            
             if (form) {
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    if (!isAuthenticated) return displayError("Please log in to make a prediction.");
+                    
                     predictButton.disabled = true;
                     predictButton.innerText = 'Analyzing...';
                     
-                    resultContainer.innerHTML = `<div class="flex flex-col items-center justify-center"><div class="loader"></div><p class="text-gray-500 mt-4">Running prediction...</p></div>`;
+                    document.getElementById('result-content').innerHTML = `<div class="flex flex-col items-center justify-center"><div class="loader"></div><p class="text-gray-500 mt-4">Running prediction...</p></div>`;
 
                     const formData = new FormData(form);
                     const data = {};
                     for (let [key, value] of formData.entries()) {
-                        data[key] = value;
+                        data[key] = ['standard', 'age', 'year', 'family_income', 'prev_academic_performance', 'attendance_record', 'teacher_student_ratio', 'distance_km'].includes(key)
+                            ? parseFloat(value)
+                            : value;
                     }
 
                     try {
@@ -488,7 +1110,7 @@
                         }
                         
                         displayResults(result);
-                        updateKpiCards();
+                        updateKpiCards(currentUserRole);
 
                     } catch (error) {
                         console.error('Error:', error);
@@ -500,6 +1122,14 @@
                 });
             }
 
+            // 4. Event Listeners for Batch Prediction
+            const batchForm = document.getElementById('batch-form');
+            const batchPredictButton = document.getElementById('batch-predict-button');
+            const csvFileInput = document.getElementById('csv-file');
+            const fileNameSpan = document.getElementById('file-name');
+            const batchResultContainer = document.getElementById('batch-result-container');
+            const resetBatchButton = document.getElementById('reset-batch-form');
+
             if (csvFileInput) {
                 csvFileInput.addEventListener('change', () => {
                     fileNameSpan.textContent = csvFileInput.files.length > 0 ? csvFileInput.files[0].name : '';
@@ -509,6 +1139,8 @@
             if (batchForm) {
                 batchForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    if (!isAuthenticated) return displayBatchError("Please log in to run batch predictions.");
+                    
                     if (csvFileInput.files.length === 0) {
                         displayBatchError('Please select a CSV file to upload.');
                         return;
@@ -531,7 +1163,7 @@
                         if (!response.ok) throw new Error(result.error || 'Batch prediction failed.');
                         
                         displayBatchResults(result.predictions);
-                        updateKpiCards();
+                        updateKpiCards(currentUserRole);
                         batchForm.reset();
                         fileNameSpan.textContent = '';
 
@@ -543,9 +1175,30 @@
                     }
                 });
             }
+            if (resetBatchButton) {
+                resetBatchButton.addEventListener('click', () => {
+                    batchForm.reset();
+                    fileNameSpan.textContent = '';
+                    batchResultContainer.innerHTML = '';
+                    batchResultsData = [];
+                });
+            }
+
+            // 5. Event Listeners for Report Generation
+            const reportForm = document.getElementById('report-form');
+            const previewReportButton = document.getElementById('preview-report-button');
+            
+            if (reportForm) {
+                reportForm.addEventListener('submit', downloadReport);
+            }
+            if (previewReportButton) {
+                previewReportButton.addEventListener('click', previewReport);
+            }
+            
+            // Ensure the dashboard is the initial view
+            showView('dashboard', document.querySelector('.sidebar-link'));
         });
     </script>
 
 </body>
 </html>
-

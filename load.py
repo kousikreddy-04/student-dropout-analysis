@@ -6,11 +6,12 @@ import os
 
 def load_historical_data():
     """
-    Connects to the PostgreSQL database, loads historical data from the CSV,
+    Connects to the PostgreSQL database, loads the new historical dataset,
     formats it, and appends it to the 'student_predictions' table.
     """
     load_dotenv()
     DATABASE_URI = os.environ.get('DATABASE_URL')
+    # UPDATED: Using the new dataset file
     CSV_FILE_PATH = 'karnataka_dropout_balanced.csv'
     TABLE_NAME = 'student_predictions'
 
@@ -33,6 +34,7 @@ def load_historical_data():
 
     # Standardize column names to snake_case
     df.columns = [col.strip().replace(' ', '_').lower() for col in df.columns]
+    print("✅ Column names standardized to snake_case.")
 
     # Create prediction columns from historical status
     if 'dropout_status' in df.columns:
@@ -42,8 +44,9 @@ def load_historical_data():
         print("Error: 'dropout_status' column not found in the CSV.")
         sys.exit(1)
         
-    # Define the final columns for the database table (excluding 'id' and 'created_at')
+    # Define the final columns for the database table, now including the real student_name
     final_columns = [
+        'student_name',
         'school_name', 'area_type', 'gender', 'caste', 'standard', 'age', 'year',
         'district', 'dropout_reason', 'parental_education', 'family_income',
         'prev_academic_performance', 'attendance_record', 'teacher_student_ratio',
@@ -60,7 +63,7 @@ def load_historical_data():
     print("Data prepared for database insertion.")
     
     try:
-        # FIX: Use if_exists='append' to add data to the existing, correctly structured table.
+        # Use if_exists='append' to add data to the existing table after running setup.
         df_final.to_sql(TABLE_NAME, engine, if_exists='append', index=False, chunksize=1000)
         print(f"\nSuccess! Loaded {len(df_final)} rows into the '{TABLE_NAME}' table.")
         print("You can now run 'flask run' to start the web application.")

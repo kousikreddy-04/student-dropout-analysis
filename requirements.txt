@@ -9,3 +9,7 @@ psycopg2-binary
 python-dotenv
 requests
 gunicorn
+flask_login
+fpdf
+werkzeug
+sqlalchemy
