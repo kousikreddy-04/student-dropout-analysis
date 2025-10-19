@@ -1,134 +1,146 @@
 # 🎓 Student Dropout Prediction & Intervention System
 
-A full-stack web application that leverages a machine learning model to predict student dropout risk in real-time.  
-The system features an **interactive dashboard** with live KPIs, an **AI-powered intervention suggestion engine** using the **Google Gemini API**, and **batch prediction** capabilities for processing large datasets.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Built with Flask](https://img.shields.io/badge/Web%20Framework-Flask-black.svg)](https://flask.palletsprojects.com/)
+[![AI Powered by](https://img.shields.io/badge/AI-Google%20Gemini%20API-4285F4.svg)](https://ai.google.dev/gemini-api)
 
-🔗 **Live Demo**: [https://student-dropout-analysis-1.onrender.com/](https://student-dropout-analysis-1.onrender.com/)  
+An **AI-powered web application** that predicts student dropout risk and assists educators with insights and interventions. Built using **Flask**, **PostgreSQL**, and **LightGBM**, it integrates with the **Google Gemini API** to generate personalized recommendations and uses **Power BI** for visualization.
 
+🔗 **Live Demo:** [https://student-dropout-analysis-1.onrender.com/](https://student-dropout-analysis-1.onrender.com/)
 
 ---
 
 ## 🚀 Key Features
-- **Real-Time Prediction**: Input a single student’s data and instantly get a dropout risk score.  
-- **AI-Powered Interventions**: For at-risk students, the system calls **Google Gemini API** to generate actionable strategies for educators.  
-- **Live KPI Dashboard**: View real-time metrics like *Total Students* and *Dropout Rate*.  
-- **Batch Prediction**: Upload a CSV file with multiple student records, process them in batch, and download results.  
-- **Embedded Business Intelligence**: Integrates with **Power BI** for detailed, interactive reports.  
-- **Scalable Architecture**: Built with Flask + PostgreSQL, deployable on cloud platforms like **Render**.  
+
+* Predict dropout probability **in real-time**.
+* Auto-generates **AI-guided interventions** via **Google Gemini API**.
+* Secure **Flask-Login based authentication** for teachers and administrators.
+* **Batch uploads** for multiple students via CSV/Excel.
+* Export reports as **PDF/Excel**.
+* **Color-coded risk levels:** Red = High, Yellow = Medium, Green = Low.
+* Cloud-ready deployment with **Render** and PostgreSQL integration.
+* Supports **Power BI** dashboards for performance tracking.
 
 ---
 
 ## 🏗️ Project Architecture
-The system follows a decoupled, scalable architecture:
 
-- **Frontend (UI):**  
-  HTML, Tailwind CSS, and JavaScript (single-page app).  
-- **Backend (API Server):**  
-  Flask app exposing endpoints:  
-  - `/predict` → Single prediction  
-  - `/batch_predict` → Batch CSV processing  
-  - `/api/kpi_data` → Live KPI data for dashboard  
-- **Machine Learning Model:**  
-  LightGBM (LGBM) Classifier trained on historical data (`.pkl` file).  
-- **Database:**  
-  PostgreSQL for storing predictions and historical records.  
-- **AI Integration:**  
-  Google Gemini API for tailored intervention strategies.  
-- **Business Intelligence:**  
-  Power BI connected to the database via **DirectQuery** (live updates).  
+The system follows a modular, scalable architecture with clearly defined layers:
+
+* **Frontend (UI):** Developed using HTML, Tailwind CSS, and JavaScript. The interface interacts with Flask APIs for real-time prediction and visualization.
+* **Backend (API Server):** Flask app providing REST endpoints for prediction, batch processing, dynamic KPIs, authentication, and report generation.
+* **Machine Learning Model:** LightGBM classifier trained on socio-economic and academic datasets to predict dropout risk. Serialized model and encoders are loaded from `model_assets/lgbm_model.pkl`.
+* **Database:** PostgreSQL using SQLAlchemy ORM with two core tables: `users` (credentials) and `student_predictions` (predictions, risk levels, and metadata).
+* **AI Integration:** **Google Gemini API** generates human-interpretable interventions based on risk classification.
+* **Business Intelligence Dashboard:** Power BI connected via **DirectQuery** for live visual analytics (school-wise, gender-wise, district-wise trends).
 
 ---
 
 ## 🛠️ Tech Stack
-- **Backend:** Python, Flask, Gunicorn  
-- **Frontend:** HTML, Tailwind CSS, JavaScript  
-- **Database:** PostgreSQL  
-- **Machine Learning:** Scikit-learn, LightGBM, Pandas  
-- **AI:** Google Gemini API  
-- **Visualization:** Power BI  
-- **Deployment:** Render, Git, Git LFS (for `.pkl` model)  
+
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | HTML, Tailwind CSS, JavaScript |
+| **Backend** | Flask, Gunicorn |
+| **Machine Learning** | scikit-learn, LightGBM, pandas, joblib |
+| **Database** | PostgreSQL, SQLAlchemy |
+| **AI** | **Google Gemini API** |
+| **Visualization** | Power BI, Plotly |
+| **Deployment** | Render Cloud Platform |
+| **File Handling** | openpyxl, FPDF |
 
 ---
 
-## ⚙️ Local Setup and Installation
+## ⚙️ Installation & Setup
 
-### 📋 Prerequisites
-- Python 3.10+  
-- PostgreSQL installed & running  
-- Git + Git LFS  
+### Prerequisites
 
-### 🖥️ Step-by-Step Guide
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/kousikreddy-04/student-dropout-analysis
-   cd your-repo-name
-   ```
+* Python 3.10+
+* PostgreSQL database
+* Git and Git LFS installed
+* Power BI Desktop (for dashboard setup)
 
-2. **Install Git LFS**
-   ```bash
-   git lfs install
-   git lfs pull
-   ```
+### Steps
 
-3. **Create Virtual Environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # Linux/Mac
-   venv\Scripts\activate      # Windows
-   ```
-
-4. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-5. **Set Up Environment Variables**  
-   Create a `.env` file in the project root (see `.env.example`):
-   ```ini
-   DATABASE_URL="postgresql://postgres:your_password@localhost:5432/student_dropout_db"
-   GEMINI_API_KEY="your_google_ai_api_key"
-   ```
-
-6. **Create the Database**  
-   Use pgAdmin or psql to create the DB (`student_dropout_db`).
-
-7. **Train ML Model**
-   ```bash
-   python ml_model.py
-   ```
-
-8. **Load Historical Data**
-   ```bash
-   python load_historical_data.py
-   ```
-
-9. **Run Flask App**
-   ```bash
-   flask run
-   ```
-   Now open → [http://127.0.0.1:5000](http://127.0.0.1:5000)
+1.  Clone the repository:
+    ```bash
+    git clone [https://github.com/kousikreddy-04/student-dropout-analysis.git](https://github.com/kousikreddy-04/student-dropout-analysis.git)
+    cd student-dropout-analysis
+    ```
+2.  Install Git LFS and pull large files:
+    ```bash
+    git lfs install
+    git lfs pull
+    ```
+3.  Create and activate a virtual environment:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate # Linux/Mac
+    venv\Scripts\activate # Windows
+    ```
+4.  Install project dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+5.  Configure environment variables (create a `.env` file):
+    ```bash
+    DATABASE_URL="postgresql://postgres:your_password@localhost:5432/student_dropout_db"
+    GEMINI_API_KEY="your_google_ai_api_key"
+    SECRET_KEY="your_secret_key"
+    ```
+6.  Initialize database schema (create tables):
+    ```bash
+    python
+    from app import db
+    db.create_all()
+    exit()
+    ```
+7.  Train or verify model in `ml_model.py`, or ensure model file exists at `/model_assets/lgbm_model.pkl`.
+8.  Run the Flask server:
+    ```bash
+    flask run
+    ```
+    Access via [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
 ---
 
 ## ☁️ Deployment on Render
-1. **Push to GitHub** (make sure `.gitattributes` includes Git LFS).  
-2. **Create PostgreSQL Service** on Render.  
-3. **Create Web Service** and connect GitHub repo.  
-   - **Build Command:** `pip install -r requirements.txt`  
-   - **Start Command:** `gunicorn app:app`  
-4. **Add Environment Variables** in Render:
-   - `DATABASE_URL` → Internal connection string  
-   - `GEMINI_API_KEY` → Your Google Gemini API key  
-5. **Seed the Database:**  
-   Run `load_historical_data.py` locally once, using Render’s **external DB URL**.  
+
+1.  Push code to GitHub ensuring `.gitattributes` tracks LFS model files.
+2.  Create a **PostgreSQL** instance and **Web Service** on Render.
+3.  Set environment variables in Render Dashboard:
+    * `DATABASE_URL`
+    * `GEMINI_API_KEY`
+    * `SECRET_KEY`
+4.  Render build and start commands:
+    ```bash
+    Build: pip install -r requirements.txt
+    Start: gunicorn app:app
+    ```
+5.  Optionally seed database locally via `load_historical_data.py` using the Render external DB URL.
 
 ---
 
 ## 📊 Business Intelligence
-Power BI connects directly to the live PostgreSQL DB using **DirectQuery mode**, ensuring dashboards are always up-to-date.
+
+The Power BI dashboard connects directly to PostgreSQL via **DirectQuery** mode, displaying:
+
+* School-wise dropout distribution
+* Gender and caste-based risk trends
+* KPI cards for enrolled vs predicted dropouts
 
 ---
 
 ## 📜 License
-This project is licensed under the **MIT License**.  
-See the [LICENSE](LICENSE) file for details.
+
+Licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
+
+---
+
+---
+
+## 🌟 Acknowledgements
+
+* **Google Gemini API** for generating insights
+* Render for hosting services
+* Power BI for interactive analytics
