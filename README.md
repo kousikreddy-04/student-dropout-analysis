@@ -1,6 +1,5 @@
 # 🎓 Student Dropout Prediction & Intervention System
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Built with Flask](https://img.shields.io/badge/Web%20Framework-Flask-black.svg)](https://flask.palletsprojects.com/)
 [![AI Powered by](https://img.shields.io/badge/AI-Google%20Gemini%20API-4285F4.svg)](https://ai.google.dev/gemini-api)
 
@@ -45,7 +44,7 @@ The system follows a modular, scalable architecture with clearly defined layers:
 | **Machine Learning** | scikit-learn, LightGBM, pandas, joblib |
 | **Database** | PostgreSQL, SQLAlchemy |
 | **AI** | **Google Gemini API** |
-| **Visualization** | Power BI, Plotly |
+| **Visualization** | Power BI|
 | **Deployment** | Render Cloud Platform |
 | **File Handling** | openpyxl, FPDF |
 
