@@ -12,7 +12,7 @@ import io
 from fpdf import FPDF
 import openpyxl
 import datetime # Import datetime for timezone handling
-from sqlalchemy.exc import IntegrityError # Kept for robust error handling
+from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 
 # Load environment variables from a .env file for local development
@@ -20,6 +20,7 @@ load_dotenv()
 
 # --- Flask App Initialization and Configuration ---
 app = Flask(__name__, template_folder='templates')
+# Use a secret key from environment variables for security
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-super-secret-key-for-development')
 CORS(app)
 
@@ -35,11 +36,12 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # --- Gemini AI Configuration ---
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key="
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key="
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
 # --- ML Model Loading ---
 try:
+    # Load the trained LightGBM model and artifacts (encoders, feature names)
     model_artifacts = joblib.load('model_assets/lgbm_model.pkl')
     model = model_artifacts['model']
     label_encoders = model_artifacts['label_encoders']
@@ -59,6 +61,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False) # 'teacher' or 'admin'
     
+    # Define relationship to predictions table
     predictions = db.relationship('StudentPrediction', backref='user', lazy='dynamic')
 
 
@@ -71,6 +74,7 @@ class User(UserMixin, db.Model):
 class StudentPrediction(db.Model):
     __tablename__ = 'student_predictions'
     id = db.Column(db.Integer, primary_key=True)
+    # Student Demographic/Input Data
     student_name = db.Column(db.String(255))
     school_name = db.Column(db.String(255))
     area_type = db.Column(db.String(50))
@@ -87,14 +91,20 @@ class StudentPrediction(db.Model):
     attendance_record = db.Column(db.Float)
     teacher_student_ratio = db.Column(db.Float)
     distance_km = db.Column(db.Float)
+    
+    # Prediction Results
     predicted_dropout_status = db.Column(db.String(50))
     predicted_risk_score = db.Column(db.Float)
     risk_level = db.Column(db.String(50)) 
+    
+    # Metadata
     created_at = db.Column(db.TIMESTAMP(timezone=True), server_default=db.func.now())
+    # Foreign Key linking prediction to the user who made it
     user_id = db.Column(db.Integer, db.ForeignKey('users.id')) 
 
 @login_manager.user_loader
 def load_user(user_id):
+    # Loads user object from ID for flask-login session management
     return db.session.get(User, int(user_id)) if hasattr(db.session, 'get') else User.query.get(int(user_id))
 
 
@@ -103,9 +113,13 @@ def index():
     """Renders the main single-page application shell."""
     return render_template('index.html')
 
-# --- AUTHENTICATION API ---
+# ------------------------------------------------
+# --- AUTHENTICATION API ENDPOINTS ---
+# ------------------------------------------------
+
 @app.route('/api/register', methods=['POST'])
 def register():
+    """Endpoint for user registration (Admin or Teacher)."""
     data = request.json
     username, password, role = data.get('username'), data.get('password'), data.get('role', 'teacher')
     
@@ -129,6 +143,7 @@ def register():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    """Endpoint for user login, starts a session, and returns user role."""
     data = request.json
     user = User.query.filter_by(username=data.get('username')).first()
     if user and user.check_password(data.get('password')):
@@ -139,46 +154,59 @@ def login():
 @app.route('/api/logout', methods=['POST'])
 @login_required
 def logout():
+    """Endpoint to log out the current user."""
     logout_user()
     return jsonify({'success': True})
 
 @app.route('/api/check_auth')
 def check_auth():
+    """Endpoint to check the current authentication status and user role."""
     if current_user.is_authenticated:
         return jsonify({'authenticated': True, 'user': {'username': current_user.username, 'role': current_user.role}})
     return jsonify({'authenticated': False})
 
-# --- DATA & PREDICTION API ---
+# ------------------------------------------------
+# --- DATA & PREDICTION API ENDPOINTS ---
+# ------------------------------------------------
 
 def get_base_query():
-    """Returns a base query for student predictions, filtered by user role."""
+    """Applies Role-Based Access Control (RBAC) to data queries."""
     if current_user.is_authenticated and current_user.role == 'teacher':
+        # Teachers only see predictions they created
         return StudentPrediction.query.filter_by(user_id=current_user.id)
+    # Admins and public views see all data
     return StudentPrediction.query
 
 @app.route('/api/public_kpi_data')
 def get_public_kpi_data():
-    """Provides high-level, anonymized data for the public-facing dashboard."""
-    try:
-        total_students = StudentPrediction.query.count()
-        total_dropout = StudentPrediction.query.filter_by(predicted_dropout_status='Dropout').count()
-        dropout_rate = (total_dropout / total_students * 100) if total_students > 0 else 0
-        return jsonify({'total_students': total_students, 'dropout_rate': dropout_rate})
-    except Exception as e:
-        print(f"🔴 Public KPI Error: {e}")
-        return jsonify({'total_students': 0, 'dropout_rate': 0})
-
-@app.route('/api/kpi_data')
-@login_required
-def get_kpi_data():
-    """Provides detailed KPI data for authenticated users based on their role."""
+    """Provides high-level, aggregate data for the public dashboard view."""
     try:
         query = get_base_query()
         total_students = query.count()
         total_dropout = query.filter_by(predicted_dropout_status='Dropout').count()
         total_enrolled = total_students - total_dropout
         
-        # NOTE: high_risk_students count REMOVED as requested.
+        dropout_rate = (total_dropout / total_students * 100) if total_students > 0 else 0
+        
+        return jsonify({
+            'total_students': total_students, 
+            'total_dropout': total_dropout,  # Exposed for public KPI card display
+            'total_enrolled': total_enrolled, # Exposed for public KPI card display
+            'dropout_rate': dropout_rate
+        })
+    except Exception as e:
+        print(f"🔴 Public KPI Error: {e}")
+        return jsonify({'total_students': 0, 'total_dropout': 0, 'total_enrolled': 0, 'dropout_rate': 0})
+
+@app.route('/api/kpi_data')
+@login_required
+def get_kpi_data():
+    """Provides detailed KPI data for authenticated users (same data, but protected)."""
+    try:
+        query = get_base_query()
+        total_students = query.count()
+        total_dropout = query.filter_by(predicted_dropout_status='Dropout').count()
+        total_enrolled = total_students - total_dropout
         
         dropout_rate = (total_dropout / total_students * 100) if total_students > 0 else 0
         return jsonify({
@@ -194,18 +222,16 @@ def get_kpi_data():
 @app.route('/api/dropdown_data')
 @login_required 
 def get_dropdown_data():
-    """Provides data for form dropdowns and report filters from the database."""
+    """Provides distinct, dynamic data used to populate all dropdowns/multi-select filters."""
     try:
         query = get_base_query()
         
+        # Query distinct values, filter out None/empty strings, and sort them
         school_names = [item[0] for item in query.with_entities(StudentPrediction.school_name).distinct().order_by(StudentPrediction.school_name) if item[0]]
         districts = [item[0] for item in query.with_entities(StudentPrediction.district).distinct().order_by(StudentPrediction.district) if item[0]]
         reasons = [item[0] for item in query.with_entities(StudentPrediction.dropout_reason).filter(StudentPrediction.dropout_reason.isnot(None)).distinct().order_by(StudentPrediction.dropout_reason) if item[0]]
         
-        # Collect years as integers for proper sorting
         years = sorted([item[0] for item in query.with_entities(StudentPrediction.year).distinct() if item[0]])
-        
-        # Convert years back to string for consistent JSON output (though Python handles int)
         years = [str(y) for y in years] 
 
         return jsonify({
@@ -221,6 +247,7 @@ def get_dropdown_data():
 @app.route('/predict', methods=['POST'])
 @login_required
 def predict():
+    """Handles single student prediction requests, stores the result, and fetches AI interventions."""
     if not model: return jsonify({'error': 'Model not loaded.'}), 500
     try:
         data = request.json
@@ -241,12 +268,14 @@ def predict():
 @app.route('/batch_predict', methods=['POST'])
 @login_required
 def batch_predict():
+    """Handles batch prediction requests via CSV file upload."""
     if not model: return jsonify({'error': 'Model not loaded.'}), 500
     if 'csv_file' not in request.files: return jsonify({'error': 'No file part in the request.'}), 400
     file = request.files['csv_file']
     if file.filename == '': return jsonify({'error': 'No file selected.'}), 400
     
     try:
+        # Read file stream into pandas DataFrame
         csv_data = io.StringIO(file.stream.read().decode("UTF8"))
         original_df = pd.read_csv(csv_data)
         processing_df = original_df.copy()
@@ -257,10 +286,12 @@ def batch_predict():
         for index, row in processing_df.iterrows():
             student_data = row.to_dict()
             
+            # Predict status (without AI intervention for batch processing efficiency)
             response_data, db_entry_data = process_single_prediction(student_data, with_ai=False)
             
             db_entry_data['user_id'] = current_user.id
             
+            # Prepare result row for download/display
             result_row = {key.replace('_', ' ').title(): value for key, value in original_df.iloc[index].to_dict().items()}
             result_row['Predicted Dropout Status'] = response_data['prediction']
             result_row['Predicted Risk Score (%)'] = response_data['risk_score']
@@ -280,6 +311,7 @@ def batch_predict():
 @app.route('/api/generate_report', methods=['POST'])
 @login_required
 def generate_report():
+    """Generates detailed student reports based on filters, returning a preview or a downloadable file."""
     try:
         data = request.json
         filters = data.get('filters', {})
@@ -288,13 +320,14 @@ def generate_report():
         
         query = get_base_query()
         
-        # --- Apply Dynamic Filters ---
+        # --- Apply Dynamic Filters to the SQL query ---
         report_type = filters.get('report_type')
         if report_type == 'enrolled':
             query = query.filter(StudentPrediction.predicted_dropout_status == 'Enrolled')
         elif report_type == 'dropout':
             query = query.filter(StudentPrediction.predicted_dropout_status == 'Dropout')
             
+        # Filter by lists (multi-select inputs)
         if filters.get('years'):
             query = query.filter(StudentPrediction.year.in_([int(y) for y in filters['years']]))
         if filters.get('districts'):
@@ -307,8 +340,10 @@ def generate_report():
             query = query.filter(StudentPrediction.gender.in_(filters['gender']))
         if filters.get('area_type'):
             query = query.filter(StudentPrediction.area_type.in_(filters['area_type']))
-            
-        # --- End Apply Dynamic Filters ---
+        if filters.get('dropout_reason'):
+             query = query.filter(StudentPrediction.dropout_reason.in_(filters['dropout_reason']))
+
+        # --- Report Generation Logic ---
             
         if action == 'preview':
             total_count = query.count()
@@ -319,7 +354,7 @@ def generate_report():
                 row_dict = {}
                 for c in row.__table__.columns:
                     value = getattr(row, c.name)
-                    # FIX 1: Convert Timestamps to timezone-naive string for preview
+                    # Convert Timestamps to timezone-naive string for safe JSON preview
                     if c.type.python_type is datetime.datetime and value:
                         row_dict[c.name] = value.replace(tzinfo=None).isoformat()
                     else:
@@ -331,14 +366,14 @@ def generate_report():
         elif action == 'download':
             results = query.all()
             
-            # --- FIX 2: Pre-process datetimes for EXCEL/PDF export ---
+            # --- FIX: Pre-process datetimes for EXCEL/PDF export ---
             data_list = []
             for row in results:
                 row_dict = {}
                 for c in row.__table__.columns:
                     value = getattr(row, c.name)
                     if c.type.python_type is datetime.datetime and value:
-                        # Convert to timezone-naive string for safety in export
+                        # Convert to timezone-naive string for safety in Excel/PDF export
                         row_dict[c.name] = value.replace(tzinfo=None).strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         row_dict[c.name] = value
@@ -357,6 +392,7 @@ def generate_report():
                 filename = 'student_report.xlsx'
                 
             elif report_format == 'pdf':
+                # Logic for PDF creation (limited columns due to page width)
                 pdf = FPDF(orientation='L', unit='mm', format='A3')
                 pdf.add_page()
                 pdf.set_font('Arial', 'B', 8)
@@ -398,6 +434,7 @@ def generate_report():
 
 # --- HELPER FUNCTIONS ---
 def process_single_prediction(data, with_ai=True):
+    """Helper to process input data, run ML prediction, and return results/DB entry data."""
     model_data = data.copy()
     expected_model_features = ['area_type', 'gender', 'caste', 'standard', 'age', 'year', 'district', 'parental_education', 'family_income', 'prev_academic_performance', 'attendance_record', 'teacher_student_ratio', 'distance_km']
     
@@ -428,6 +465,7 @@ def process_single_prediction(data, with_ai=True):
     dropout_risk_prob = prediction_proba[dropout_class_index]
     risk_score = round(dropout_risk_prob * 100, 2)
     
+    # Determine risk level for intervention trigger
     risk_level = "Low"
     if risk_score >= 70: risk_level = "High"
     elif risk_score >= 40: risk_level = "Medium"
@@ -435,6 +473,7 @@ def process_single_prediction(data, with_ai=True):
     # --- Response Data ---
     response_data = {'prediction': predicted_status, 'risk_level': risk_level, 'risk_score': risk_score, 'interventions': None}
     
+    # Trigger AI intervention generation if risk is Medium or High
     if with_ai and risk_level in ["High", "Medium"]:
         response_data['interventions'] = get_gemini_interventions(data, response_data)
         
@@ -449,6 +488,7 @@ def process_single_prediction(data, with_ai=True):
     return response_data, db_entry_data
 
 def get_gemini_interventions(student_data, prediction_result):
+    """Calls the Gemini API to generate intervention strategies."""
     if not API_KEY: return "Gemini API Key not configured."
     try:
         prompt = f"A model predicts a student named {student_data.get('student_name', 'Unknown')} will '{prediction_result['prediction']}' with a risk level of '{prediction_result['risk_level']}' ({prediction_result['risk_score']}% risk score). Student data: {student_data}. Provide 3-4 concise intervention strategies."
@@ -467,8 +507,6 @@ def get_gemini_interventions(student_data, prediction_result):
 
 if __name__ == '__main__':
     with app.app_context():
-        # NOTE: db.create_all() relies on the database.sql having been run 
-        # successfully once to create the tables with the correct schema.
         db.create_all() 
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

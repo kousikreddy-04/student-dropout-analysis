@@ -1,10 +1,20 @@
--- This script creates the definitive table structure for the application.
--- Run this once in your PostgreSQL database to set up the table correctly.
+-- This script creates the necessary tables for user authentication and data storage.
+-- Run this once in your PostgreSQL database to set up the project.
 
--- Drop the table if it exists to ensure a clean start
+-- Drop existing tables to start with a clean schema for a fresh installation
 DROP TABLE IF EXISTS public.student_predictions;
+DROP TABLE IF EXISTS public.users;
 
--- Create the table with an 'id' primary key and all columns expected by the app
+-- Create the 'users' table to store login and role information
+CREATE TABLE IF NOT EXISTS public.users
+(
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(150) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('teacher', 'admin'))
+);
+
+-- Create the 'student_predictions' table with a foreign key to the 'users' table
 CREATE TABLE IF NOT EXISTS public.student_predictions
 (
     id SERIAL PRIMARY KEY,
@@ -26,14 +36,17 @@ CREATE TABLE IF NOT EXISTS public.student_predictions
     distance_km double precision,
     predicted_dropout_status character varying(50),
     predicted_risk_score double precision,
-    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+	risk_level character varying(50),
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    user_id integer REFERENCES users(id) -- Foreign key to link each prediction to a user
 );
 
--- Set the owner of the table
-ALTER TABLE IF EXISTS public.student_predictions
-    OWNER to student;
+-- Set table owners (optional, but good practice)
+ALTER TABLE IF EXISTS public.users OWNER to student;
+ALTER TABLE IF EXISTS public.student_predictions OWNER to student;
 
--- Add comments for clarity
-COMMENT ON TABLE public.student_predictions
-    IS 'Stores historical data, single predictions, and batch predictions.';
+COMMENT ON TABLE public.users IS 'Stores user accounts and their roles (teacher or admin).';
+COMMENT ON TABLE public.student_predictions IS 'Stores historical data, single predictions, and batch predictions.';
+COMMENT ON COLUMN public.student_predictions.user_id IS 'Identifies which user created this prediction record.';
 
+-- End of database setup script

@@ -13,3 +13,4 @@ flask_login
 fpdf
 werkzeug
 sqlalchemy
+openpyxl

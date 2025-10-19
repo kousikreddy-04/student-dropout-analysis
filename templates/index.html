@@ -33,7 +33,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- CRITICAL FIX: Hide Modals by default to show Public Dashboard --- */
+        /* CRITICAL FIX: Modals are hidden by default to show Public Dashboard on load */
         #login-modal, #register-modal {
             display: none; 
         }
@@ -206,7 +206,7 @@
                                     </div>
                                 </div>
                                 
-                                <button type="submit" id="predict-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:bg-indigo-300">
+                                <button type="submit" id="predict-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 transition-all duration-300 disabled:bg-indigo-300">
                                     Predict Dropout Risk
                                 </button>
                                 <button type="reset" class="w-full bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-all duration-300">
@@ -446,7 +446,7 @@
 
 
     <script>
-        // --- Global State ---
+        // --- GLOBAL STATE AND CONFIGURATION ---
         let batchResultsData = [];
         let isAuthenticated = false;
         let currentUserRole = 'public'; // Default role for unauthenticated users
@@ -463,7 +463,7 @@
             'age-report': 'Age & Standard-wise Analysis',
         };
         
-        // --- Core UI Functions ---
+        // --- CORE UI FUNCTIONS ---
 
         /** Toggles view containers and updates the page title/sidebar active state. */
         function showView(viewId, element) {
@@ -514,19 +514,18 @@
             }
         }
         
-        // --- Role-Based Access Control (RBAC) ---
+        // --- ROLE-BASED ACCESS CONTROL (RBAC) ---
 
         /** Updates UI elements based on the current user role (public, teacher, admin). */
         function applyRoleRestrictions(role) {
             currentUserRole = role;
             const authenticated = role !== 'public';
             
-            // Toggle sidebar links based on data-roles attribute
+            // Show/hide sidebar links based on data-roles attribute
             document.querySelectorAll('.authenticated-feature').forEach(el => {
                 const roles = el.getAttribute('data-roles');
                 const requiredRoles = roles ? roles.split(',') : [];
                 
-                // Show feature if authenticated AND user's role is in the allowed list
                 if (authenticated && requiredRoles.includes(role)) {
                     el.style.display = 'flex';
                 } else {
@@ -554,13 +553,12 @@
             // Update KPI data based on public or authenticated endpoints
             updateKpiCards(role);
             
-            // If the user logs out, ensure they see the dashboard
             if (!authenticated) {
                 showView('dashboard', document.querySelector('.sidebar-link'));
             }
         }
         
-        // --- Authentication & Registration Logic ---
+        // --- AUTHENTICATION & REGISTRATION LOGIC ---
 
         async function checkAuthStatus() {
             try {
@@ -608,7 +606,7 @@
                     form.reset();
                     await checkAuthStatus(); 
                 } else {
-                    messageElement.innerText = result.message || 'Login failed.';
+                    messageElement.innerText = result.message || 'Invalid username or password.';
                 }
             } catch (error) {
                 messageElement.innerText = 'An error occurred during login.';
@@ -670,38 +668,35 @@
             }
         }
 
-        // --- Data Fetching & UI Update Functions ---
+        // --- DATA FETCHING & UI UPDATE FUNCTIONS ---
 
+        /** Fetches aggregate KPI data (public or private scope). */
+       /** Fetches aggregate KPI data (public or private scope). */
         async function updateKpiCards(role) {
+            // Endpoint is selected based on role, but both endpoints now return all four values.
             const endpoint = role === 'public' ? '/api/public_kpi_data' : '/api/kpi_data';
             const kpiIds = ['total-students-kpi', 'dropout-rate-kpi', 'total-dropout-kpi', 'enrolled-kpi'];
 
-            if (role === 'public') {
-                document.getElementById('total-dropout-kpi').innerText = data.total_dropout.toLocaleString();
-                document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
-            }
+            // Set loading state
+            kpiIds.forEach(id => document.getElementById(id).innerText = '...');
             
             try {
                 const response = await fetch(endpoint);
                 if (!response.ok) throw new Error('Failed to fetch KPI data');
                 const data = await response.json();
-
+                
+                // All four cards are updated using the fetched data (available from both public/private APIs)
                 document.getElementById('total-students-kpi').innerText = data.total_students.toLocaleString();
                 document.getElementById('dropout-rate-kpi').innerText = (data.dropout_rate).toFixed(1) + '%';
-                
-                if (data.total_dropout !== undefined) {
-                    document.getElementById('total-dropout-kpi').innerText = data.total_dropout.toLocaleString();
-                    document.getElementById('enrolled-kpi').innerText = data.total_enrolled.toLocaleString();
-                }
+            
+                document.getElementById('total-dropout-kpi').innerText = (data.total_dropout !== undefined) ? data.total_dropout.toLocaleString() : 'N/A';
+                document.getElementById('enrolled-kpi').innerText = (data.total_enrolled !== undefined) ? data.total_enrolled.toLocaleString() : 'N/A';
                 
             } catch (error) {
-                console.error("KPI Update Error:", error);
-                document.getElementById('total-students-kpi').innerText = 'Error';
-                document.getElementById('dropout-rate-kpi').innerText = 'Error';
+                // ... Error handling
             }
         }
-
-        /** CRITICAL FIX: Populates all three prediction form dropdowns (school, district, reason). */
+        /** Populates all single-select dropdowns in the Prediction Form. */
         async function loadDropdownData() {
             try {
                 const response = await fetch('/api/dropdown_data');
@@ -712,7 +707,6 @@
                 const districtSelect = document.getElementById('district');
                 const reasonSelect = document.getElementById('dropout-reason');
                 
-                // Helper to create options
                 const createOptions = (list, defaultText = "Select...") => {
                     let options = `<option value="">${defaultText}</option>`;
                     options += list.map(item => `<option value="${item}">${item}</option>`).join('');
@@ -728,7 +722,7 @@
             }
         }
         
-        /** CRITICAL FIX: Populates all report filter multi-selects dynamically. */
+        /** Populates all multi-select filter fields in the Reports View. */
         async function loadReportFilters() {
              try {
                 const response = await fetch('/api/dropdown_data');
@@ -753,7 +747,7 @@
             }
         }
         
-        // --- Prediction/Result Display Functions (unchanged) ---
+        // --- PREDICTION RESULT UI ---
 
         function displayResults(result) {
             const prediction = result.prediction;
