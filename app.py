@@ -36,7 +36,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 # --- Gemini AI Configuration ---
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key="
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro:generateContent?key="
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
 # --- ML Model Loading ---
